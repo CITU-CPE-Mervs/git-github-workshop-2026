@@ -13,3 +13,5 @@
 
   root.appendChild(button);
 })();
+// Function to initialize and render the 8-bit converter widget
+  
