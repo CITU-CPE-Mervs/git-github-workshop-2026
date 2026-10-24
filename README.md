@@ -192,3 +192,4 @@ class-hub/
 
 <!-- ADD YOUR NAME BELOW THIS LINE -->
 - Facilitator (Mervin John Tampus)
+- Juan dela Cruz
