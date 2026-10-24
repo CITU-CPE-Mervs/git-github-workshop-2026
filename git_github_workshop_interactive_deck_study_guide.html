@@ -1,0 +1,2197 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Git & GitHub Desktop Workshop — Interactive Deck & Study Guide</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            gh: {
+              bg: '#0d1117',
+              card: '#161b22',
+              border: '#30363d',
+              text: '#e6edf3',
+              muted: '#8b949e',
+              green: '#2da44e',
+              greenHover: '#2c974b',
+              blue: '#58a6ff',
+              orange: '#f05032',
+              purple: '#8957e5',
+              danger: '#f85149',
+              warning: '#d29922'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style id="workshop-styles">
+    /* Custom scrollbars & transitions */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .slide-card {
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+    /* Presentation Mode vs Study Guide Mode */
+    body.mode-presentation {
+      overflow: hidden;
+      height: 100vh;
+    }
+    body.mode-presentation #slides-wrapper {
+      height: calc(100vh - 112px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    body.mode-presentation .slide-section {
+      display: none;
+      width: 100%;
+      max-width: 1240px;
+      height: 100%;
+      max-height: 760px;
+      overflow-y: auto;
+      border-radius: 1rem;
+      padding: 2.25rem 2.75rem;
+    }
+    body.mode-presentation .slide-section.active-slide {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      animation: fadeInSlide 0.22s ease-out;
+    }
+    /* Study Guide Mode */
+    body.mode-study {
+      overflow-y: auto;
+      height: auto;
+    }
+    body.mode-study #slides-wrapper {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 2rem 1rem 6rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+    }
+    body.mode-study .slide-section {
+      display: flex !important;
+      flex-direction: column;
+      justify-content: space-between;
+      border-radius: 1rem;
+      padding: 2.25rem;
+      scroll-margin-top: 80px;
+    }
+    @keyframes fadeInSlide {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Diff highlighting */
+    .diff-add {
+      background-color: rgba(46, 160, 67, 0.18);
+      border-left: 3px solid #2ea043;
+    }
+    .diff-del {
+      background-color: rgba(248, 81, 73, 0.18);
+      border-left: 3px solid #f85149;
+    }
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(139, 148, 158, 0.4);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(139, 148, 158, 0.7);
+    }
+  </style>
+</head>
+
+<body class="mode-presentation bg-slate-100 text-slate-900 dark:bg-gh-bg dark:text-gh-text font-sans antialiased selection:bg-gh-blue selection:text-white">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="sticky top-0 z-40 h-14 bg-white/95 dark:bg-gh-card/95 backdrop-blur border-b border-slate-200 dark:border-gh-border px-3 sm:px-6 flex items-center justify-between gap-2">
+    <!-- Left: Brand & TOC Drawer Button -->
+    <div class="flex items-center gap-3">
+      <button onclick="toggleDrawer('toc-drawer')" class="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-gh-text flex items-center gap-2 text-sm font-medium border border-slate-300 dark:border-gh-border" title="Table of Contents (M)">
+        <i class="fa-solid fa-bars"></i>
+        <span class="hidden md:inline">All 24 Slides</span>
+      </button>
+      <div class="flex items-center gap-2">
+        <i class="fa-brands fa-git-alt text-2xl text-gh-orange"></i>
+        <div>
+          <span class="font-display font-bold text-sm sm:text-base tracking-tight">Class Hub Workshop</span>
+          <span class="hidden lg:inline-block ml-2 text-xs font-mono px-2 py-0.5 rounded bg-gh-green/15 text-gh-green border border-gh-green/30">CpE 1st–4th Year</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center: Dual View Mode Toggle -->
+    <div class="flex items-center bg-slate-200 dark:bg-gh-bg p-1 rounded-lg border border-slate-300 dark:border-gh-border">
+      <button id="btn-mode-pres" onclick="setViewMode('presentation')" class="px-3 py-1 rounded-md text-xs sm:text-sm font-medium transition flex items-center gap-1.5 bg-gh-green text-white shadow">
+        <i class="fa-solid fa-tv"></i>
+        <span>Slide Deck</span>
+      </button>
+      <button id="btn-mode-study" onclick="setViewMode('study')" class="px-3 py-1 rounded-md text-xs sm:text-sm font-medium transition flex items-center gap-1.5 text-slate-700 dark:text-gh-muted hover:text-slate-900 dark:hover:text-white">
+        <i class="fa-solid fa-book-open"></i>
+        <span>Study Guide (All 24)</span>
+      </button>
+    </div>
+
+    <!-- Right: Utility Controls -->
+    <div class="flex items-center gap-1.5 sm:gap-2">
+      <button onclick="toggleSpeakerNotes()" id="btn-notes" class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium border border-slate-300 dark:border-gh-border hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center gap-1.5" title="Toggle Facilitator Speaker Notes (N)">
+        <i class="fa-solid fa-microphone-lines text-gh-blue"></i>
+        <span class="hidden sm:inline">Notes</span>
+      </button>
+
+      <button onclick="openExportModal()" class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium border border-slate-300 dark:border-gh-border hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center gap-1.5" title="Export or Separate HTML/CSS/JS Files">
+        <i class="fa-solid fa-code text-gh-purple"></i>
+        <span class="hidden lg:inline">HTML/CSS/JS</span>
+      </button>
+
+      <button onclick="toggleTheme()" class="p-2 rounded-lg border border-slate-300 dark:border-gh-border hover:bg-slate-200 dark:hover:bg-slate-800" title="Toggle Projector Light / Dark Mode (T)">
+        <i id="theme-icon" class="fa-solid fa-sun text-amber-400"></i>
+      </button>
+
+      <button onclick="toggleFullScreen()" class="hidden sm:flex p-2 rounded-lg border border-slate-300 dark:border-gh-border hover:bg-slate-200 dark:hover:bg-slate-800" title="Fullscreen (F)">
+        <i class="fa-solid fa-expand"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Progress Bar -->
+  <div class="w-full h-1 bg-slate-200 dark:bg-gh-border">
+    <div id="slide-progress-bar" class="h-full bg-gradient-to-r from-gh-orange via-gh-green to-gh-blue transition-all duration-200" style="width: 4.16%;"></div>
+  </div>
+
+  <!-- ================= TABLE OF CONTENTS SIDEBAR DRAWER ================= -->
+  <div id="toc-drawer" class="fixed inset-0 z-50 hidden">
+    <div onclick="toggleDrawer('toc-drawer')" class="absolute inset-0 bg-black/60 backdrop-blur-xs"></div>
+    <aside class="relative w-80 sm:w-96 max-w-full h-full bg-white dark:bg-gh-card border-r border-slate-200 dark:border-gh-border flex flex-col z-10">
+      <div class="p-4 border-b border-slate-200 dark:border-gh-border flex items-center justify-between">
+        <div>
+          <h3 class="font-display font-bold text-base">Workshop Curriculum</h3>
+          <p class="text-xs text-slate-500 dark:text-gh-muted">24 Interactive Slides • 3-Hour Lab</p>
+        </div>
+        <button onclick="toggleDrawer('toc-drawer')" class="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="toc-list" class="flex-1 overflow-y-auto p-3 space-y-1 text-sm">
+        <!-- Populated dynamically by JS -->
+      </div>
+    </aside>
+  </div>
+
+  <!-- ================= MAIN SLIDES CONTAINER ================= -->
+  <main id="slides-wrapper">
+
+    <!-- ==========================================
+         SLIDE 1: TITLE SLIDE
+         ========================================== -->
+    <section class="slide-section active-slide bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="1. Welcome & Workshop Roadmap" data-time="0:00–0:15 (2:00 PM)" data-notes="Welcome everyone! Poll the room first: Raise your hand if you're 1st year? 2nd year? 3rd/4th year? Today you don't need to be a JavaScript expert—AI will write the widget code, and YOU will master Git & GitHub by hand.">
+      <div>
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
+          <span class="font-mono text-xs uppercase tracking-wider px-3 py-1 rounded-full bg-gh-orange/15 text-gh-orange border border-gh-orange/30 font-semibold">
+            <i class="fa-solid fa-terminal mr-1"></i> Computer Engineering Hands-On Lab • 2:00 PM – 5:00 PM
+          </span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 1 / 24</span>
+        </div>
+
+        <h1 class="font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-4">
+          Git &amp; GitHub Desktop:<br>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-gh-orange via-gh-green to-gh-blue">From Solo Coding to Team Collaboration</span>
+        </h1>
+
+        <p class="text-base sm:text-xl text-slate-600 dark:text-gh-muted max-w-3xl mb-6">
+          A beginner-friendly, interactive guide to version control, branching, Pull Requests, and merge conflicts—building the shared <code class="font-mono text-gh-green bg-gh-green/10 px-2 py-0.5 rounded">class-hub</code> web dashboard together.
+        </p>
+
+        <!-- 3-Hour Roadmap Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 my-6">
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono text-xs text-gh-orange font-bold">0:00–0:15</div>
+            <div class="font-semibold text-sm mt-1">1. The "Why"</div>
+            <p class="text-xs text-slate-500 dark:text-gh-muted mt-0.5">Mental model &amp; rules</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono text-xs text-gh-blue font-bold">0:15–0:30</div>
+            <div class="font-semibold text-sm mt-1">2. Setup &amp; Clone</div>
+            <p class="text-xs text-slate-500 dark:text-gh-muted mt-0.5">Desktop + CLI config</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono text-xs text-gh-green font-bold">0:30–1:10</div>
+            <div class="font-semibold text-sm mt-1">3. Solo Loop</div>
+            <p class="text-xs text-slate-500 dark:text-gh-muted mt-0.5">Branch, AI widget, commit</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono text-xs text-gh-purple font-bold">1:20–1:55</div>
+            <div class="font-semibold text-sm mt-1">4. Push &amp; PRs</div>
+            <p class="text-xs text-slate-500 dark:text-gh-muted mt-0.5">Peer code review</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono text-xs text-amber-500 font-bold">1:55–2:35</div>
+            <div class="font-semibold text-sm mt-1">5. Conflicts</div>
+            <p class="text-xs text-slate-500 dark:text-gh-muted mt-0.5">Resolve &amp; merge live</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono text-xs text-rose-500 font-bold">2:35–3:00</div>
+            <div class="font-semibold text-sm mt-1">6. Undo &amp; Wrap</div>
+            <p class="text-xs text-slate-500 dark:text-gh-muted mt-0.5">Restore, revert &amp; quiz</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-200 dark:border-gh-border flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gh-green/20 border border-gh-green flex items-center justify-center font-display font-bold text-gh-green">
+            MT
+          </div>
+          <div>
+            <div class="text-sm font-bold">Prepared by: Mervin John Tampus</div>
+            <div class="text-xs text-slate-500 dark:text-gh-muted">Software Development &amp; Version Control Workshop</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="goToSlide(14)" class="px-3.5 py-2 rounded-lg bg-slate-200 dark:bg-gh-bg hover:bg-slate-300 dark:hover:bg-slate-800 text-xs sm:text-sm font-medium">
+            <i class="fa-solid fa-wand-magic-sparkles text-gh-purple mr-1"></i> Jump to AI Prompt Builder
+          </button>
+          <button onclick="nextSlide()" class="px-4 py-2 rounded-lg bg-gh-green hover:bg-gh-greenHover text-white text-xs sm:text-sm font-semibold shadow">
+            Start Workshop <i class="fa-solid fa-arrow-right ml-1"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 2: INTENDED LEARNING OUTCOMES (ILOs)
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="2. Intended Learning Outcomes (ILOs)" data-time="0:00–0:05" data-notes="Connect your course syllabus ILOs with our practical hands-on goals today. By 5:00 PM, everyone will have a real Pull Request merged into Class Hub.">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-gh-blue font-semibold">01 / Workshop Goals</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 2 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">Intended Learning Outcomes (ILOs)</h2>
+        <p class="text-sm sm:text-base text-slate-600 dark:text-gh-muted mb-6">
+          By 5:00 PM today, every participant—from 1st-year freshman to 4th-year capstone student—will be able to:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex gap-3.5">
+            <div class="w-9 h-9 rounded-lg bg-gh-orange/15 text-gh-orange flex items-center justify-center shrink-0 font-bold">1</div>
+            <div>
+              <h3 class="font-bold text-base">Speak the Language of Version Control</h3>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mt-1">Clearly explain what a <strong>repository</strong>, <strong>commit</strong>, <strong>branch</strong>, <strong>remote</strong>, and <strong>pull request (PR)</strong> are and why software teams rely on them.</p>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex gap-3.5">
+            <div class="w-9 h-9 rounded-lg bg-gh-blue/15 text-gh-blue flex items-center justify-center shrink-0 font-bold">2</div>
+            <div>
+              <h3 class="font-bold text-base">Master GitHub Desktop + Git CLI Together</h3>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mt-1">Clone, branch, stage, commit, push, pull, and open a PR using <strong>GitHub Desktop buttons</strong> while understanding the exact <strong>terminal command</strong> behind every click.</p>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex gap-3.5">
+            <div class="w-9 h-9 rounded-lg bg-gh-green/15 text-gh-green flex items-center justify-center shrink-0 font-bold">3</div>
+            <div>
+              <h3 class="font-bold text-base">Collaborate Without Overwriting Teammates</h3>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mt-1">Build a custom JavaScript widget on an isolated branch (<code class="font-mono text-xs">widget/yourname</code>), review a classmate's code, and resolve a real <strong>merge conflict</strong> calmly.</p>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex gap-3.5">
+            <div class="w-9 h-9 rounded-lg bg-gh-purple/15 text-gh-purple flex items-center justify-center shrink-0 font-bold">4</div>
+            <div>
+              <h3 class="font-bold text-base">Audit &amp; Undo AI-Generated Code Safely</h3>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mt-1">Inspect line-by-line diffs before committing AI code, and recover from broken code in seconds using <strong>Discard changes (<code class="font-mono text-xs">git restore</code>)</strong> and <strong>Revert (<code class="font-mono text-xs">git revert</code>)</strong>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 p-3 rounded-xl bg-gh-blue/10 border border-gh-blue/30 flex items-center justify-between text-xs sm:text-sm">
+        <span><i class="fa-solid fa-lightbulb text-gh-blue mr-2"></i><strong>Beginner Promise:</strong> You do not need prior JavaScript or command-line experience today.</span>
+        <span class="font-mono text-xs text-gh-blue">Deliverable: 1 Live Widget on Class Hub</span>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 3: THE PROBLEM ("PROJECT X")
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="3. The Problem: Project X Folder Chaos" data-time="0:05–0:08" data-notes="Say: 'Raise your hand if you have ever had a file called final_v2_REAL_final!' Show how Project X + People + Files turns into chaos the night before a capstone or lab deadline.">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-gh-orange font-semibold">02 / The Problem</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 3 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">What Happens When We Have Group Projects?</h2>
+        <p class="text-sm sm:text-base text-slate-600 dark:text-gh-muted mb-6">
+          In every engineering project (<strong class="text-gh-orange">Project X</strong>), you have <strong>People (Engineers)</strong> editing <strong>Files/Code</strong>. Without version control, your folder looks like this at 2:00 AM:
+        </p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+          <!-- Left: The Infamous Folder Tree -->
+          <div class="p-5 rounded-xl bg-slate-900 text-slate-100 border border-slate-700 font-mono text-xs sm:text-sm space-y-2.5 shadow-inner">
+            <div class="text-slate-400 border-b border-slate-700 pb-2 mb-2 flex items-center justify-between">
+              <span><i class="fa-regular fa-folder-open text-amber-400 mr-2"></i>C:\Users\CpE_Student\Desktop\Project_X\</span>
+              <span class="text-rose-400 text-xs">3:14 AM</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-300">
+              <span><i class="fa-solid fa-file-zipper text-amber-400 mr-2"></i>Project_X_v1.zip</span>
+              <span class="text-xs text-slate-500">Oct 12</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-300">
+              <span><i class="fa-solid fa-file-zipper text-amber-400 mr-2"></i>Project_X_v2_working.zip</span>
+              <span class="text-xs text-slate-500">Oct 18</span>
+            </div>
+            <div class="flex items-center justify-between text-amber-300">
+              <span><i class="fa-solid fa-file-zipper text-amber-400 mr-2"></i>Project_X_FINAL_pass_na.zip</span>
+              <span class="text-xs text-slate-500">11:40 PM</span>
+            </div>
+            <div class="flex items-center justify-between text-rose-400 font-bold bg-rose-950/50 px-2 py-1 rounded">
+              <span><i class="fa-solid fa-triangle-exclamation mr-2"></i>Project_X_FINAL_REAL_MERVIN_EDIT_2AM.zip</span>
+              <span class="text-xs">2:15 AM</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-400">
+              <span><i class="fa-solid fa-file-zipper text-amber-400 mr-2"></i>Project_X_BROKEN_DONT_DELETE.zip</span>
+              <span class="text-xs text-slate-500">3:10 AM</span>
+            </div>
+          </div>
+
+          <!-- Right: The 4 Horsemen of Group Project Panic -->
+          <div class="space-y-3.5">
+            <div class="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex gap-3">
+              <i class="fa-brands fa-facebook-messenger text-2xl text-rose-500 mt-0.5"></i>
+              <div>
+                <h4 class="font-bold text-sm sm:text-base">"Wait, whose version has the working navbar?"</h4>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted">Sending <code class="font-mono">index_updated(3).html</code> over Messenger or Discord means someone manually copies &amp; pastes lines—and accidentally deletes your code.</p>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex gap-3">
+              <i class="fa-solid fa-bomb text-2xl text-amber-500 mt-0.5"></i>
+              <div>
+                <h4 class="font-bold text-sm sm:text-base">"It worked 20 minutes ago, and Ctrl+Z stopped working!"</h4>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted">Once you close your code editor or overwrite a file, your undo history is gone forever.</p>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-gh-green/10 border border-gh-green/30 flex gap-3">
+              <i class="fa-solid fa-shield-halved text-2xl text-gh-green mt-0.5"></i>
+              <div>
+                <h4 class="font-bold text-sm sm:text-base">What Git Solves: History, Safety &amp; Teamwork</h4>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted">You keep <strong>one single folder</strong>. Git tracks every single change, who made it, when, and why.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 text-xs sm:text-sm text-slate-500 dark:text-gh-muted flex items-center justify-between">
+        <span><i class="fa-solid fa-users mr-1.5"></i> Project X Diagram: Project ↔ People (Engineers) ↔ Files</span>
+        <span>Next: Why Google Drive &amp; OneDrive aren't enough</span>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 4: WHY GOOGLE DRIVE / ONEDRIVE FAIL FOR CODE
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="4. Google Drive / OneDrive vs. Git & GitHub" data-time="0:08–0:10" data-notes="Refer to Slide 9 of your original deck (Mervin, Nash, Jezreel collaborating on Google Drive/OneDrive). Explain why file-sync drives break source code.">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-gh-orange font-semibold">03 / Why Not Google Drive?</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 4 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">Why Google Drive &amp; OneDrive Fail for Source Code</h2>
+        <p class="text-sm sm:text-base text-slate-600 dark:text-gh-muted mb-5">
+          Google Drive is great for Word docs and PDFs, but when 3 engineers edit code simultaneously, file-syncing breaks down:
+        </p>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-gh-border">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-slate-100 dark:bg-gh-bg border-b border-slate-200 dark:border-gh-border">
+                <th class="p-3.5 font-bold">Scenario</th>
+                <th class="p-3.5 font-bold text-rose-500"><i class="fa-brands fa-google-drive mr-1"></i> Google Drive / OneDrive / Zip</th>
+                <th class="p-3.5 font-bold text-gh-green"><i class="fa-brands fa-git-alt mr-1"></i> Git + GitHub</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 dark:divide-gh-border">
+              <tr>
+                <td class="p-3.5 font-semibold">Two people edit <code class="font-mono">index.html</code> at the same time</td>
+                <td class="p-3.5 text-slate-600 dark:text-gh-muted">Last person to upload silently overwrites the other, or creates <code class="font-mono">index (Conflicted copy).html</code>.</td>
+                <td class="p-3.5">Automatically merges changes on different lines, or highlights exact lines to combine.</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-semibold">Saving a multi-file feature (`index.html` + `style.css` + `app.js`)</td>
+                <td class="p-3.5 text-slate-600 dark:text-gh-muted">Syncs files one by one as you type—teammates pull half-finished, broken code mid-sentence.</td>
+                <td class="p-3.5"><strong>Atomic Commits:</strong> Groups all 3 file changes into one named snapshot only when it works.</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-semibold">Experimenting with a risky new idea or AI rewrite</td>
+                <td class="p-3.5 text-slate-600 dark:text-gh-muted">You have to duplicate the entire project folder into <code class="font-mono">Copy of Project_X</code>.</td>
+                <td class="p-3.5"><strong>Branches:</strong> Switch to a parallel timeline in 1 millisecond without duplicating folders.</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-semibold">Finding out what broke the app last Tuesday</td>
+                <td class="p-3.5 text-slate-600 dark:text-gh-muted">Dig through 15 unnamed zip backups hoping one works.</td>
+                <td class="p-3.5"><strong>Git Blame &amp; Diff:</strong> See the exact line, author, timestamp, and commit message—and revert in 1 click.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mt-4 p-3 rounded-xl bg-slate-100 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+        <span><i class="fa-solid fa-globe text-gh-green mr-2"></i><strong>Industry Standard:</strong> Over <strong>100+ Million developers</strong> and virtually every tech company on Earth use Git &amp; GitHub daily.</span>
+        <span class="font-mono text-xs text-slate-500">Other VCS: GitLab, Bitbucket, SVN, Perforce</span>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 5: WHAT IS VERSION CONTROL? (SAVE-POINT ANALOGY)
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="5. What is Version Control? (Save-Point Analogy)" data-time="0:10–0:11" data-notes="Use the video game save-point analogy. A commit is like saving your game right before fighting a boss (or before asking AI to rewrite your code!).">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-gh-green font-semibold">04 / Concept</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 5 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">What is Version Control? (Think Video Game Save Points)</h2>
+        <p class="text-sm sm:text-base text-slate-600 dark:text-gh-muted mb-6">
+          A <strong>Version Control System (VCS)</strong> is a time machine for your project folder. Every time a feature works, you create a named <strong>Commit (Save Point)</strong>.
+        </p>
+
+        <!-- Visual Timeline Diagram -->
+        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border my-4">
+          <div class="text-xs font-mono uppercase text-slate-500 dark:text-gh-muted mb-4">Project Timeline (Commit History Graph)</div>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
+            <div class="p-4 rounded-xl bg-white dark:bg-gh-card border-2 border-gh-blue shadow-xs">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-mono text-xs px-2 py-0.5 rounded bg-gh-blue/15 text-gh-blue font-bold">c9ad986</span>
+                <span class="text-xs text-slate-400">2:15 PM</span>
+              </div>
+              <div class="font-bold text-sm">1. Initial Commit</div>
+              <p class="text-xs text-slate-500 dark:text-gh-muted mt-1">Starter <code class="font-mono">index.html</code> + example Click Counter works.</p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-white dark:bg-gh-card border-2 border-gh-green shadow-xs">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-mono text-xs px-2 py-0.5 rounded bg-gh-green/15 text-gh-green font-bold">4aa3630</span>
+                <span class="text-xs text-slate-400">2:40 PM</span>
+              </div>
+              <div class="font-bold text-sm">2. Add Contributor Name</div>
+              <p class="text-xs text-slate-500 dark:text-gh-muted mt-1">Added my name to <code class="font-mono">README.md</code> contributors list.</p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-white dark:bg-gh-card border-2 border-gh-purple shadow-xs">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-mono text-xs px-2 py-0.5 rounded bg-gh-purple/15 text-gh-purple font-bold">27ef652</span>
+                <span class="text-xs text-slate-400">3:00 PM</span>
+              </div>
+              <div class="font-bold text-sm">3. Add Binary Widget</div>
+              <p class="text-xs text-slate-500 dark:text-gh-muted mt-1">Created <code class="font-mono">widgets/juan.js</code> and hooked into HTML.</p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-rose-500/10 border-2 border-dashed border-rose-500">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-mono text-xs px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold">UNSAVED</span>
+                <span class="text-xs text-rose-400">4:35 PM</span>
+              </div>
+              <div class="font-bold text-sm text-rose-500">4. AI Broke Everything!</div>
+              <p class="text-xs text-slate-600 dark:text-gh-muted mt-1">No panic! Click <strong>Discard Changes</strong> to teleport back to Commit #3.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 text-xs sm:text-sm">
+          <div class="p-3 rounded-lg bg-slate-100 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <strong class="text-gh-blue"><i class="fa-solid fa-user-check mr-1"></i> Who &amp; When:</strong> Every save point records the author's name, email, and exact second.
+          </div>
+          <div class="p-3 rounded-lg bg-slate-100 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <strong class="text-gh-green"><i class="fa-solid fa-file-lines mr-1"></i> What Changed (Diff):</strong> Shows exact green (<code class="font-mono">+</code>) added lines and red (<code class="font-mono">-</code>) removed lines.
+          </div>
+          <div class="p-3 rounded-lg bg-slate-100 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <strong class="text-gh-purple"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Time Travel:</strong> Jump back to any previous commit hash (`27ef652`) anytime.
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 6: GIT vs GITHUB vs GITHUB DESKTOP
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="6. Git vs. GitHub vs. GitHub Desktop" data-time="0:11–0:13" data-notes="Clear up the #1 beginner misconception: Git is NOT the same thing as GitHub! Git is the local tool on your laptop; GitHub is the website; GitHub Desktop is the visual button interface.">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-gh-blue font-semibold">05 / Clearing the #1 Confusion</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 6 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">Git vs. GitHub vs. GitHub Desktop</h2>
+        <p class="text-sm sm:text-base text-slate-600 dark:text-gh-muted mb-6">
+          Beginners often use these names interchangeably, but they are three distinct layers working together:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <!-- Card 1: Git -->
+          <div class="p-5 rounded-2xl bg-slate-50 dark:bg-gh-bg border-2 border-gh-orange/40 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <i class="fa-brands fa-git-alt text-4xl text-gh-orange"></i>
+                <span class="font-mono text-xs px-2.5 py-1 rounded bg-gh-orange/15 text-gh-orange font-bold">1. The Local Engine</span>
+              </div>
+              <h3 class="font-display text-xl font-bold mb-2">Git (On Your Laptop)</h3>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-3">
+                Created in 2005 by <strong>Linus Torvalds</strong> (creator of the Linux kernel). It lives on your computer, tracks changes inside a hidden <code class="font-mono">.git</code> folder, and works <strong>100% offline without internet</strong>.
+              </p>
+            </div>
+            <div class="pt-3 border-t border-slate-200 dark:border-gh-border font-mono text-xs text-slate-500">
+              Interface: Command Line (<code class="text-gh-orange">git commit</code>)
+            </div>
+          </div>
+
+          <!-- Card 2: GitHub -->
+          <div class="p-5 rounded-2xl bg-slate-50 dark:bg-gh-bg border-2 border-gh-blue/40 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <i class="fa-brands fa-github text-4xl text-slate-900 dark:text-white"></i>
+                <span class="font-mono text-xs px-2.5 py-1 rounded bg-gh-blue/15 text-gh-blue font-bold">2. The Cloud Website</span>
+              </div>
+              <h3 class="font-display text-xl font-bold mb-2">GitHub.com (In the Cloud)</h3>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-3">
+                Founded in 2008. A web platform that hosts your Git repositories online so teammates can clone your project, open <strong>Pull Requests</strong>, review code, and track issues.
+              </p>
+            </div>
+            <div class="pt-3 border-t border-slate-200 dark:border-gh-border font-mono text-xs text-slate-500">
+              Analogy: The Cloud Multiplayer Lobby
+            </div>
+          </div>
+
+          <!-- Card 3: GitHub Desktop -->
+          <div class="p-5 rounded-2xl bg-slate-50 dark:bg-gh-bg border-2 border-gh-purple/40 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <i class="fa-solid fa-desktop text-4xl text-gh-purple"></i>
+                <span class="font-mono text-xs px-2.5 py-1 rounded bg-gh-purple/15 text-gh-purple font-bold">3. The Visual GUI</span>
+              </div>
+              <h3 class="font-display text-xl font-bold mb-2">GitHub Desktop (GUI App)</h3>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-3">
+                A friendly visual app installed on your PC. Instead of memorizing terminal commands on Day 1, you click visual buttons—and every button runs the exact same Git command underneath!
+              </p>
+            </div>
+            <div class="pt-3 border-t border-slate-200 dark:border-gh-border font-mono text-xs text-gh-purple">
+              Today: We learn Desktop + CLI side-by-side!
+            </div>
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 7: CORE VOCABULARY CHEAT SHEET
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="7. Core Vocabulary Cheat Sheet (9 Key Terms)" data-time="0:13–0:14" data-notes="Quickly walk through these 9 terms. Tell students they can click any card in Study Mode or refer back to this slide anytime during the workshop.">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-xs uppercase text-gh-green font-semibold">06 / Developer Dictionary</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 7 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-3xl font-bold mb-1">Speak Like an Engineer: 9 Core Terms</h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-4">
+          Master these 9 words and you will understand 95% of every Git conversation in school and industry:
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs sm:text-sm">
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono font-bold text-gh-blue">1. Repository (Repo)</div>
+            <p class="text-slate-600 dark:text-gh-muted mt-1">A project folder tracked by Git, containing all your files plus their complete revision history.</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono font-bold text-gh-orange">2. Working Directory</div>
+            <p class="text-slate-600 dark:text-gh-muted mt-1">The actual files you see and edit in VS Code right now before saving them into Git history.</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono font-bold text-amber-500">3. Staging Area (Index)</div>
+            <p class="text-slate-600 dark:text-gh-muted mt-1">The "loading dock" or shopping cart where you check-mark which modified files go into your next commit.</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono font-bold text-gh-green">4. Commit (Snapshot)</div>
+            <p class="text-slate-600 dark:text-gh-muted mt-1">A permanent, named save point in your local history with a unique ID hash (e.g., <code class="font-mono">4aa3630</code>).</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono font-bold text-gh-purple">5. Branch</div>
+            <p class="text-slate-600 dark:text-gh-muted mt-1">An isolated parallel timeline (<code class="font-mono">widget/juan</code>) where you build features safely without breaking <code class="font-mono">main</code>.</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono font-bold text-cyan-400">6. Remote (`origin`)</div>
+            <p class="text-slate-600 dark:text-gh-muted mt-1">The version of your repository hosted on GitHub's cloud servers. By default, Git nicknames it <code class="font-mono">origin</code>.</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono font-bold text-emerald-400">7. Clone vs. Pull</div>
+            <p class="text-slate-600 dark:text-gh-muted mt-1"><strong>Clone</strong> downloads a repo for the very first time. <strong>Pull</strong> downloads new updates into an already-cloned repo.</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono font-bold text-pink-400">8. Push</div>
+            <p class="text-slate-600 dark:text-gh-muted mt-1">Uploading your local commits from your laptop up to the <code class="font-mono">origin</code> repository on GitHub.</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono font-bold text-indigo-400">9. Pull Request (PR)</div>
+            <p class="text-slate-600 dark:text-gh-muted mt-1">A request on GitHub asking the team to review your branch and merge your new code into <code class="font-mono">main</code>.</p>
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 8: THE 5-STAGE MENTAL MODEL (INTERACTIVE)
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="8. Interactive 5-Stage Mental Model" data-time="0:14–0:15" data-notes="Draw this on the whiteboard too! Click each stage on the slide to show students how files move from Working Folder -> Staging -> Commit -> Push -> GitHub.">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-gh-orange font-semibold">07 / The Key Mental Model</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 8 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">The 5-Stage Git Pipeline (Click Any Stage to Inspect)</h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-5">
+          Understanding where your code lives at every moment prevents 99% of beginner mistakes. Click any box below:
+        </p>
+
+        <!-- Interactive Pipeline Buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-5 gap-2.5 mb-5">
+          <button onclick="selectPipelineStage(0)" id="pipe-btn-0" class="pipe-btn p-3.5 rounded-xl border-2 border-gh-orange bg-gh-orange/15 text-left transition">
+            <div class="font-mono text-xs text-gh-orange font-bold">STAGE 1 (LOCAL)</div>
+            <div class="font-bold text-sm sm:text-base mt-1"><i class="fa-solid fa-laptop-code mr-1"></i> Working Folder</div>
+            <div class="text-xs text-slate-500 dark:text-gh-muted mt-1">Edit files in VS Code</div>
+          </button>
+
+          <button onclick="selectPipelineStage(1)" id="pipe-btn-1" class="pipe-btn p-3.5 rounded-xl border-2 border-slate-200 dark:border-gh-border bg-slate-50 dark:bg-gh-bg text-left transition hover:border-amber-500">
+            <div class="font-mono text-xs text-amber-500 font-bold">STAGE 2 • git add</div>
+            <div class="font-bold text-sm sm:text-base mt-1"><i class="fa-solid fa-list-check mr-1"></i> Staging Area</div>
+            <div class="text-xs text-slate-500 dark:text-gh-muted mt-1">Changes tab checkboxes</div>
+          </button>
+
+          <button onclick="selectPipelineStage(2)" id="pipe-btn-2" class="pipe-btn p-3.5 rounded-xl border-2 border-slate-200 dark:border-gh-border bg-slate-50 dark:bg-gh-bg text-left transition hover:border-gh-green">
+            <div class="font-mono text-xs text-gh-green font-bold">STAGE 3 • git commit</div>
+            <div class="font-bold text-sm sm:text-base mt-1"><i class="fa-solid fa-box-archive mr-1"></i> Local History</div>
+            <div class="text-xs text-slate-500 dark:text-gh-muted mt-1">Saved on your laptop</div>
+          </button>
+
+          <button onclick="selectPipelineStage(3)" id="pipe-btn-3" class="pipe-btn p-3.5 rounded-xl border-2 border-slate-200 dark:border-gh-border bg-slate-50 dark:bg-gh-bg text-left transition hover:border-gh-purple">
+            <div class="font-mono text-xs text-gh-purple font-bold">STAGE 4 • git push</div>
+            <div class="font-bold text-sm sm:text-base mt-1"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Push / Upload</div>
+            <div class="text-xs text-slate-500 dark:text-gh-muted mt-1">Publish to cloud</div>
+          </button>
+
+          <button onclick="selectPipelineStage(4)" id="pipe-btn-4" class="pipe-btn p-3.5 rounded-xl border-2 border-slate-200 dark:border-gh-border bg-slate-50 dark:bg-gh-bg text-left transition hover:border-gh-blue">
+            <div class="font-mono text-xs text-gh-blue font-bold">STAGE 5 • REMOTE</div>
+            <div class="font-bold text-sm sm:text-base mt-1"><i class="fa-brands fa-github mr-1"></i> GitHub (`origin`)</div>
+            <div class="text-xs text-slate-500 dark:text-gh-muted mt-1">PRs &amp; Team Merge</div>
+          </button>
+        </div>
+
+        <!-- Dynamic Inspector Box -->
+        <div id="pipeline-detail-box" class="p-5 rounded-2xl bg-slate-100 dark:bg-gh-bg border border-slate-300 dark:border-gh-border">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <h3 id="pipe-title" class="font-display font-bold text-lg sm:text-xl text-gh-orange">Stage 1: Working Folder (Uncommitted Changes)</h3>
+            <code id="pipe-cmd" class="font-mono text-xs px-3 py-1 rounded bg-slate-900 text-gh-green">git status / git diff</code>
+          </div>
+          <p id="pipe-desc" class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-3">
+            When you edit <code class="font-mono">index.html</code> or create <code class="font-mono">widgets/yourname.js</code> in VS Code and press <kbd class="px-1.5 py-0.5 rounded bg-slate-300 dark:bg-slate-700 font-mono text-xs">Ctrl+S</kbd>, the file is saved in your Working Folder, <strong>but Git has NOT recorded a snapshot yet</strong>.
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
+            <div class="p-3 rounded-lg bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border">
+              <span class="text-gh-purple font-bold">GitHub Desktop:</span> <span id="pipe-gui">Appears automatically in the left "Changes" tab</span>
+            </div>
+            <div class="p-3 rounded-lg bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border">
+              <span class="text-gh-green font-bold">How to Undo Here:</span> <span id="pipe-undo">Right-click file → Discard changes (`git restore &lt;file&gt;`)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 9: PHASE 1 (0:15-0:30) PRE-FLIGHT SETUP
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="9. Phase 1 (0:15–0:30): Setup & Identity Config" data-time="0:15–0:22" data-notes="Walk around the lab right now. Make sure everyone is signed into GitHub Desktop and sets their name & email so their commits show their real name.">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-gh-blue font-semibold">08 / Phase 1: Setup (0:15–0:30)</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 9 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">Step-by-Step Setup &amp; Author Identity</h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-5">
+          Every commit you make stamps your <strong>Name</strong> and <strong>Email</strong> permanently into the project history. Let's configure your machine now:
+        </p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <!-- Left: GitHub Desktop GUI Way -->
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-bold text-sm sm:text-base text-gh-purple"><i class="fa-solid fa-desktop mr-1.5"></i> Method A: GitHub Desktop (GUI)</span>
+              <span class="text-xs font-mono px-2 py-0.5 rounded bg-gh-purple/15 text-gh-purple">Recommended</span>
+            </div>
+            <ol class="space-y-2.5 text-xs sm:text-sm list-decimal list-inside text-slate-700 dark:text-gh-text">
+              <li>Open <strong>GitHub Desktop</strong> on your laptop or lab PC.</li>
+              <li>Click <strong>File → Options</strong> (Windows) or <strong>Settings</strong> (Mac).</li>
+              <li>In the <strong>Accounts</strong> tab, click <strong>Sign in to GitHub.com</strong>.</li>
+              <li>In the <strong>Git</strong> tab, verify your <strong>Name</strong> and <strong>Email</strong> match your GitHub account.</li>
+            </ol>
+            <div class="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs">
+              <strong class="text-amber-500"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Shared Lab PC Warning:</strong> If a previous student's account is logged in under <code class="font-mono">File → Options → Accounts</code>, click <strong>Sign Out</strong> first!
+            </div>
+          </div>
+
+          <!-- Right: Terminal CLI Way -->
+          <div class="p-4 rounded-xl bg-slate-900 text-slate-100 border border-slate-700 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="font-bold text-sm sm:text-base text-gh-green font-mono"><i class="fa-solid fa-terminal mr-1.5"></i> Method B: Terminal / Git Bash Commands</span>
+                <button onclick="copyCode('setup-cli-code', this)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs font-mono text-gh-blue border border-slate-600">
+                  <i class="fa-regular fa-copy mr-1"></i> Copy
+                </button>
+              </div>
+              <pre id="setup-cli-code" class="font-mono text-xs sm:text-sm text-emerald-300 overflow-x-auto leading-relaxed">git --version
+git config --global user.name "Juan Dela Cruz"
+git config --global user.email "juan@student.edu.ph"
+git config --list</pre>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-400">
+              <strong>3 Required Tools:</strong> (1) Git (`git-scm.com`), (2) GitHub Account (`github.com`), (3) GitHub Desktop (`desktop.github.com`) + VS Code.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 10: TOURING THE CLASS-HUB REPOSITORY
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="10. Touring the class-hub Starter Repository" data-time="0:22–0:26" data-notes="Click through each file in the interactive tree on screen so students understand the exact architecture of class-hub before they edit anything.">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-gh-green font-semibold">09 / Project Architecture</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 10 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">Interactive Tour: Inside <code class="font-mono text-gh-green">class-hub/</code></h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-4">
+          Click any file in the explorer on the left to inspect its code and rules for today's workshop:
+        </p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <!-- File Tree Column -->
+          <div class="lg:col-span-5 p-3.5 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border font-mono text-xs sm:text-sm space-y-1.5">
+            <div class="text-xs uppercase text-slate-400 pb-1 border-b border-slate-200 dark:border-gh-border mb-2">
+              <i class="fa-regular fa-folder-open text-amber-400 mr-1.5"></i> class-hub/
+            </div>
+            <button onclick="inspectRepoFile('index')" id="file-btn-index" class="repo-file-btn w-full text-left px-3 py-2 rounded-lg bg-gh-blue/15 text-gh-blue font-bold flex items-center justify-between">
+              <span><i class="fa-brands fa-html5 text-orange-500 mr-2"></i>index.html</span>
+              <span class="text-[11px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400">Everyone edits</span>
+            </button>
+            <button onclick="inspectRepoFile('example')" id="file-btn-example" class="repo-file-btn w-full text-left px-3 py-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center justify-between">
+              <span><i class="fa-brands fa-js text-yellow-400 mr-2"></i>widgets/example.js</span>
+              <span class="text-[11px] text-slate-400">Pattern template</span>
+            </button>
+            <button onclick="inspectRepoFile('readme')" id="file-btn-readme" class="repo-file-btn w-full text-left px-3 py-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center justify-between">
+              <span><i class="fa-brands fa-markdown text-sky-400 mr-2"></i>README.md</span>
+              <span class="text-[11px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400">Sign name</span>
+            </button>
+            <button onclick="inspectRepoFile('style')" id="file-btn-style" class="repo-file-btn w-full text-left px-3 py-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center justify-between">
+              <span><i class="fa-brands fa-css3-alt text-blue-500 mr-2"></i>style.css</span>
+              <span class="text-[11px] text-slate-400">Shared grid CSS</span>
+            </button>
+            <button onclick="inspectRepoFile('gitignore')" id="file-btn-gitignore" class="repo-file-btn w-full text-left px-3 py-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center justify-between">
+              <span><i class="fa-brands fa-git-alt text-gh-orange mr-2"></i>.gitignore</span>
+              <span class="text-[11px] text-slate-400">Ignored files</span>
+            </button>
+            <button onclick="inspectRepoFile('cheatsheet')" id="file-btn-cheatsheet" class="repo-file-btn w-full text-left px-3 py-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center justify-between">
+              <span><i class="fa-solid fa-book text-emerald-400 mr-2"></i>CHEATSHEET.md</span>
+              <span class="text-[11px] text-slate-400">Quick reference</span>
+            </button>
+          </div>
+
+          <!-- File Inspector Viewer -->
+          <div class="lg:col-span-7 p-4 rounded-xl bg-slate-900 text-slate-100 border border-slate-700 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-3">
+                <span id="repo-file-title" class="font-mono font-bold text-sm text-gh-blue">index.html — Shared Dashboard Page</span>
+                <span id="repo-file-badge" class="font-mono text-xs px-2 py-0.5 rounded bg-gh-green/20 text-gh-green">No install needed</span>
+              </div>
+              <p id="repo-file-desc" class="text-xs sm:text-sm text-slate-300 mb-3">
+                Contains the main <code class="font-mono">&lt;main id="widgets"&gt;</code> grid. You will add your <code class="font-mono">&lt;section class="widget"&gt;</code> and <code class="font-mono">&lt;script&gt;</code> tag right underneath the two marked HTML comment lines—<strong>never delete the example widget!</strong>
+              </p>
+              <pre id="repo-file-code" class="font-mono text-xs bg-black/50 p-3 rounded-lg text-emerald-300 overflow-x-auto">&lt;!-- ADD YOUR WIDGET SECTION BELOW THIS LINE --&gt;
+&lt;section class="widget"&gt;
+  &lt;h2&gt;Juan's Binary Converter&lt;/h2&gt;
+  &lt;div id="juan-widget"&gt;&lt;/div&gt;
+&lt;/section&gt;
+...
+&lt;!-- ADD YOUR SCRIPT TAG BELOW THIS LINE --&gt;
+&lt;script src="widgets/juan.js"&gt;&lt;/script&gt;</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 11: WHAT IS .gitignore?
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="11. What is .gitignore? (Protecting Secrets & Stopping Junk)" data-time="0:26–0:28" data-notes="Show the 4 lines inside class-hub/.gitignore. Warn 3rd/4th year students about bots scraping GitHub for leaked .env API keys in seconds.">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-gh-orange font-semibold">10 / Security &amp; Hygiene</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 11 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">Why <code class="font-mono text-gh-orange">.gitignore</code> Exists: Never Commit Secrets or Junk</h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-5">
+          Not every file in your project folder belongs on GitHub. The <code class="font-mono">.gitignore</code> file tells Git which files to make completely invisible to <code class="font-mono">git status</code> and <code class="font-mono">git add</code>:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-slate-900 text-slate-100 border border-slate-700 font-mono">
+            <div class="text-xs text-slate-400 border-b border-slate-700 pb-2 mb-3 flex justify-between">
+              <span>class-hub/.gitignore</span>
+              <span class="text-gh-green">4 lines</span>
+            </div>
+            <div class="space-y-3 text-xs sm:text-sm">
+              <div class="p-2 rounded bg-slate-800/80 flex items-center justify-between">
+                <span class="text-amber-300 font-bold">node_modules/</span>
+                <span class="text-xs text-slate-400 font-sans">100MB+ auto-installed packages</span>
+              </div>
+              <div class="p-2 rounded bg-rose-950/60 border border-rose-500/40 flex items-center justify-between">
+                <span class="text-rose-400 font-bold">.env</span>
+                <span class="text-xs text-rose-300 font-sans">API keys, DB passwords, secrets!</span>
+              </div>
+              <div class="p-2 rounded bg-slate-800/80 flex items-center justify-between">
+                <span class="text-sky-300 font-bold">.DS_Store</span>
+                <span class="text-xs text-slate-400 font-sans">macOS hidden folder metadata</span>
+              </div>
+              <div class="p-2 rounded bg-slate-800/80 flex items-center justify-between">
+                <span class="text-sky-300 font-bold">Thumbs.db</span>
+                <span class="text-xs text-slate-400 font-sans">Windows hidden icon cache</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-3.5 flex flex-col justify-center">
+            <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30">
+              <h3 class="font-bold text-sm sm:text-base text-rose-500"><i class="fa-solid fa-key mr-1.5"></i> Real-World Horror Story: Leaked `.env` Keys</h3>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mt-1">
+                Automated hacker bots scan public GitHub commits within <strong>3 seconds</strong> of a push looking for OpenAI, AWS, Firebase, or GCash API keys. Once pushed, even deleting the file leaves the key in your commit history!
+              </p>
+            </div>
+            <div class="p-4 rounded-xl bg-gh-green/10 border border-gh-green/30">
+              <h3 class="font-bold text-sm sm:text-base text-gh-green"><i class="fa-solid fa-circle-check mr-1.5"></i> Good Engineering Habit</h3>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mt-1">
+                Always check that <code class="font-mono">.env</code> and build folders (<code class="font-mono">dist/</code>, <code class="font-mono">node_modules/</code>, <code class="font-mono">__pycache__/</code>) are listed in <code class="font-mono">.gitignore</code> before your first commit.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 12: CLONE & SYNC (WORKFLOW STEPS 1 & 2)
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="12. Workflow Steps 1 & 2: Clone & Sync (git clone / git pull)" data-time="0:28–0:30" data-notes="Checkpoint 1! Everyone clones class-hub now and opens index.html in their browser. Do not move to Slide 13 until everyone sees the Click Counter widget.">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-gh-blue font-semibold">11 / Checkpoint 1 (0:25–0:30)</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 12 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">Clone the Repo &amp; Test <code class="font-mono text-gh-blue">index.html</code></h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-5">
+          Let's execute <strong>Steps 1 &amp; 2</strong> of our GitHub Workflow to copy <code class="font-mono">class-hub</code> onto your laptop:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Step 1: Clone -->
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono text-xs text-gh-blue font-bold uppercase mb-1">Workflow Step 1 • Do Once</div>
+            <h3 class="font-bold text-base sm:text-lg mb-2">Clone Repository to Local Machine</h3>
+            <ul class="space-y-2 text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-3">
+              <li><strong>In Browser:</strong> On GitHub, click the green <span class="px-2 py-0.5 rounded bg-gh-green text-white font-mono text-xs">&lt;&gt; Code</span> button → <strong>Open with GitHub Desktop</strong> (or copy HTTPS URL).</li>
+              <li><strong>In GitHub Desktop:</strong> Click <code class="font-mono">File → Clone repository → URL</code> and paste the repo URL.</li>
+              <li><strong>Choose Local Path:</strong> Pick your Desktop folder and click <span class="px-2 py-0.5 rounded bg-gh-blue text-white text-xs">Clone</span>.</li>
+            </ul>
+            <div class="p-2.5 rounded-lg bg-slate-900 text-emerald-300 font-mono text-xs flex items-center justify-between">
+              <span id="clone-cmd-text">git clone https://github.com/YOUR-ORG/class-hub.git</span>
+              <button onclick="copyCode('clone-cmd-text', this)" class="text-slate-400 hover:text-white"><i class="fa-regular fa-copy"></i></button>
+            </div>
+          </div>
+
+          <!-- Step 2: Fetch & Pull + Checkpoint -->
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex flex-col justify-between">
+            <div>
+              <div class="font-mono text-xs text-gh-green font-bold uppercase mb-1">Workflow Step 2 • Every Session</div>
+              <h3 class="font-bold text-base sm:text-lg mb-2">Fetch &amp; Pull Updates Before Working</h3>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-3">
+                If you already cloned the project yesterday, <strong>never start coding on stale code</strong>. Switch to <code class="font-mono">main</code> and click <strong>Fetch origin → Pull origin</strong> (<code class="font-mono">git pull</code>).
+              </p>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-gh-green/15 border-2 border-gh-green">
+              <div class="font-bold text-sm text-gh-green mb-1"><i class="fa-solid fa-flag-checkered mr-1.5"></i> CHECKPOINT 1 (Raise Your Hand When Done!)</div>
+              <p class="text-xs text-slate-700 dark:text-gh-text">
+                Double-click <code class="font-mono font-bold">index.html</code> in your cloned folder to open it in Chrome/Edge. You should see the <strong>Class Hub</strong> header and a working green <strong>Click Counter (example)</strong> button!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 13: THE #1 TEAM TRAP (NEVER COMMIT TO MAIN)
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="13. THE #1 TEAM TRAP: Never Commit Directly to main!" data-time="0:30–0:35" data-notes="STOP EVERYONE HERE! Show how in solo projects people click 'Commit to main', but in a 30-person team that causes chaos. Everyone must create their branch widget/yourname right now!">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-rose-500 font-semibold">12 / Workflow Step 3: Branching First!</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 13 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">The #1 Team Rule: Never Commit Directly to <code class="font-mono text-rose-500">main</code>!</h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-5">
+          The <code class="font-mono font-bold">main</code> branch is the sacred, working product. Before touching a single line of code, create your own isolated branch:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Bad Habit -->
+          <div class="p-4 rounded-xl bg-rose-500/10 border-2 border-rose-500/40">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-rose-500 text-sm sm:text-base"><i class="fa-solid fa-circle-xmark mr-1.5"></i> DON'T DO THIS (Solo Habit)</span>
+              <span class="font-mono text-xs px-2 py-0.5 rounded bg-rose-500/20 text-rose-400">Current branch: main</span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-3">
+              If 30 students stay on <code class="font-mono">main</code> and click the blue <strong>"Commit to main"</strong> button, Git will reject your push or overwrite your classmates' work without review.
+            </p>
+            <div class="p-3 rounded-lg bg-slate-900 text-center">
+              <span class="inline-block w-full py-2 rounded bg-blue-600/50 text-white/70 font-sans text-xs font-bold line-through">
+                Commit to main (FORBIDDEN TODAY!)
+              </span>
+            </div>
+          </div>
+
+          <!-- Good Team Habit -->
+          <div class="p-4 rounded-xl bg-gh-green/10 border-2 border-gh-green/50">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-gh-green text-sm sm:text-base"><i class="fa-solid fa-circle-check mr-1.5"></i> DO THIS RIGHT NOW (Team Workflow)</span>
+              <span class="font-mono text-xs px-2 py-0.5 rounded bg-gh-green/20 text-gh-green">widget/yourname</span>
+            </div>
+            <ol class="space-y-1.5 text-xs sm:text-sm text-slate-700 dark:text-gh-text list-decimal list-inside mb-3">
+              <li>In GitHub Desktop, click top bar: <strong>Branch → New branch...</strong></li>
+              <li>Name it <code class="font-mono font-bold text-gh-green">widget/yourname</code> (all lowercase, e.g., <code class="font-mono">widget/juan</code>).</li>
+              <li>Click <strong>Create branch</strong>. Your blue button now says <strong>Commit to widget/juan</strong>!</li>
+            </ol>
+            <div class="p-2.5 rounded-lg bg-slate-900 text-emerald-300 font-mono text-xs flex items-center justify-between">
+              <span id="branch-cmd-code">git switch -c widget/yourname</span>
+              <button onclick="copyCode('branch-cmd-code', this)" class="text-slate-400 hover:text-white"><i class="fa-regular fa-copy"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 14: GROUND RULES FOR USING AI
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="14. Ground Rules for AI Use: AI Writes JS, You Do Git" data-time="0:35–0:38" data-notes="Explain the 4 Ground Rules from the Facilitator Guide. Emphasize Rule #2: If I walk behind your laptop and point to a line in your diff, you must be able to explain what it does!">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-gh-purple font-semibold">13 / AI Engineering Discipline</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 14 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">Ground Rules: AI is Your Intern, <span class="text-gh-green">You Are the Senior Engineer</span></h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-5">
+          Today, we use AI (ChatGPT, Claude, Gemini, Copilot) to write our JavaScript widget in 2 minutes so we can focus 100% on Git mastery:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono text-xs text-gh-orange font-bold uppercase mb-1">Rule #1</div>
+            <h3 class="font-bold text-base mb-1"><i class="fa-solid fa-hand-sparkles text-gh-orange mr-1.5"></i> AI Writes Code. YOU Do All the Git.</h3>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted">
+              No asking AI to run git commands or write your commit messages. You create the branch, stage the files, and write human commit messages.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono text-xs text-gh-blue font-bold uppercase mb-1">Rule #2</div>
+            <h3 class="font-bold text-base mb-1"><i class="fa-solid fa-magnifying-glass-chart text-gh-blue mr-1.5"></i> Read the Diff Before You Commit</h3>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted">
+              Inspect every green line in the <strong>Changes tab</strong>. If you cannot explain what a change does, ask the AI to explain it—or do not commit it!
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono text-xs text-gh-green font-bold uppercase mb-1">Rule #3</div>
+            <h3 class="font-bold text-base mb-1"><i class="fa-solid fa-layer-group text-gh-green mr-1.5"></i> Small Prompts, Small Commits</h3>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted">
+              One prompt → test in browser → one working change → one commit. Never dump 5 unrelated changes into a single giant commit.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono text-xs text-rose-500 font-bold uppercase mb-1">Rule #4</div>
+            <h3 class="font-bold text-base mb-1"><i class="fa-solid fa-ban text-rose-500 mr-1.5"></i> Vanilla JS Only &amp; Zero Secrets</h3>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted">
+              Keep all widget logic inside <code class="font-mono">widgets/yourname.js</code>. No external libraries, no changing <code class="font-mono">style.css</code>, and never paste API keys.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 15: INTERACTIVE AI PROMPT & HTML BUILDER
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="15. Interactive AI Widget Prompt & HTML Builder" data-time="0:38–0:55" data-notes="Students love this slide! Tell them to type their first name and pick a widget idea right inside Slide 15 to auto-generate their exact AI prompt and index.html tags.">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-xs uppercase text-gh-green font-semibold">14 / Hands-On Builder (0:30–1:10)</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 15 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-3xl font-bold mb-1">Interactive Widget Prompt &amp; HTML Generator</h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-3">
+          Enter your name and pick a widget idea below—it will automatically generate your exact <strong>Branch Name</strong>, <strong>AI Prompt</strong>, and <strong>`index.html` snippets</strong>:
+        </p>
+
+        <!-- Interactive Inputs -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+          <div>
+            <label class="block text-xs font-mono uppercase text-slate-500 dark:text-gh-muted mb-1">1. Your First Name (lowercase, no spaces):</label>
+            <input id="builder-name" type="text" value="juan" oninput="updateWidgetBuilder()" class="w-full px-3 py-2 rounded-lg bg-slate-100 dark:bg-gh-bg border border-slate-300 dark:border-gh-border font-mono text-sm focus:outline-none focus:border-gh-blue" placeholder="e.g. juan">
+          </div>
+          <div>
+            <label class="block text-xs font-mono uppercase text-slate-500 dark:text-gh-muted mb-1">2. Pick or Type Your Widget Idea:</label>
+            <select id="builder-idea" onchange="updateWidgetBuilder()" class="w-full px-3 py-2 rounded-lg bg-slate-100 dark:bg-gh-bg border border-slate-300 dark:border-gh-border text-sm focus:outline-none focus:border-gh-blue">
+              <option value="8-bit binary to decimal & hex converter">CpE Binary / Hex Converter</option>
+              <option value="4-band resistor color code ohm calculator">Resistor Color Code Calculator</option>
+              <option value="25-minute Pomodoro study countdown timer">Pomodoro Study Timer</option>
+              <option value="bill and barkada tip splitter calculator">Barkada Tip Calculator</option>
+              <option value="random engineering survival quote generator">CpE Quote Generator</option>
+              <option value="D6 and D20 RPG dice roller">Dice Roller (D6 / D20)</option>
+              <option value="unit converter for Celsius, Fahrenheit, and Kelvin">Temperature Unit Converter</option>
+              <option value="mini daily to-do checklist">Mini To-Do List</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <!-- Output 1: AI Prompt -->
+          <div class="p-3.5 rounded-xl bg-slate-900 text-slate-100 border border-slate-700 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-mono text-xs text-gh-purple font-bold">STEP A: Copy &amp; Paste into ChatGPT / Gemini / Claude</span>
+                <button onclick="copyCode('generated-ai-prompt', this)" class="px-2.5 py-1 rounded bg-gh-purple text-white text-xs font-mono hover:opacity-90">
+                  <i class="fa-regular fa-copy mr-1"></i> Copy Prompt
+                </button>
+              </div>
+              <pre id="generated-ai-prompt" class="font-mono text-xs text-slate-200 whitespace-pre-wrap leading-relaxed bg-black/40 p-2.5 rounded-lg"></pre>
+            </div>
+            <div class="mt-2 text-[11px] font-mono text-gh-green">
+              Save AI output into new file: <code id="builder-filepath" class="underline">widgets/juan.js</code>
+            </div>
+          </div>
+
+          <!-- Output 2: index.html snippet -->
+          <div class="p-3.5 rounded-xl bg-slate-900 text-slate-100 border border-slate-700 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-mono text-xs text-gh-blue font-bold">STEP B: Paste into `index.html` under marked comments</span>
+                <button onclick="copyCode('generated-html-snippet', this)" class="px-2.5 py-1 rounded bg-gh-blue text-slate-950 font-bold text-xs font-mono hover:opacity-90">
+                  <i class="fa-regular fa-copy mr-1"></i> Copy HTML
+                </button>
+              </div>
+              <pre id="generated-html-snippet" class="font-mono text-xs text-emerald-300 whitespace-pre-wrap leading-relaxed bg-black/40 p-2.5 rounded-lg"></pre>
+            </div>
+            <div class="mt-2 text-[11px] font-mono text-amber-400">
+              <i class="fa-solid fa-triangle-exclamation mr-1"></i> Verify ID matches: <code id="builder-id-check">#juan-widget</code>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 16: READING THE DIFF & STAGING CHANGES
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="16. Reading the Diff & Staging Changes (git diff / git add)" data-time="0:55–1:02" data-notes="Show how GitHub Desktop's Changes tab highlights added lines in green (+). Remind them to test index.html in the browser BEFORE committing.">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-gh-blue font-semibold">15 / Inspecting Your Work</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 16 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">Reading the Diff Before You Commit (<code class="font-mono text-gh-blue">git diff</code>)</h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-4">
+          After saving <code class="font-mono">widgets/yourname.js</code> and editing <code class="font-mono">index.html</code>, open <strong>GitHub Desktop's Changes tab</strong> to audit every line:
+        </p>
+
+        <!-- Mockup of GitHub Desktop Changes Tab -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 rounded-xl overflow-hidden border border-slate-300 dark:border-gh-border bg-slate-900 text-slate-100 font-mono text-xs">
+          <!-- Left Sidebar of Desktop -->
+          <div class="lg:col-span-4 border-b lg:border-b-0 lg:border-r border-slate-700 p-3 space-y-2 bg-slate-950">
+            <div class="text-slate-400 pb-2 border-b border-slate-800 flex justify-between">
+              <span>Changes (3 files)</span>
+              <span class="text-gh-blue">Branch: widget/juan</span>
+            </div>
+            <label class="flex items-center justify-between p-2 rounded bg-slate-800/90 cursor-pointer">
+              <span><input type="checkbox" checked class="mr-2 accent-gh-blue">index.html</span>
+              <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400">M</span>
+            </label>
+            <label class="flex items-center justify-between p-2 rounded bg-slate-800/40 cursor-pointer">
+              <span><input type="checkbox" checked class="mr-2 accent-gh-blue">widgets/juan.js</span>
+              <span class="px-1.5 py-0.2 rounded bg-gh-green/20 text-gh-green">+</span>
+            </label>
+            <label class="flex items-center justify-between p-2 rounded bg-slate-800/40 cursor-pointer">
+              <span><input type="checkbox" checked class="mr-2 accent-gh-blue">README.md</span>
+              <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400">M</span>
+            </label>
+            <div class="pt-2 text-[11px] font-sans text-slate-400">
+              <i class="fa-solid fa-circle-info text-gh-blue mr-1"></i> Uncheck a file if you want to save it for a separate commit!
+            </div>
+          </div>
+
+          <!-- Right Diff View -->
+          <div class="lg:col-span-8 p-3.5 space-y-1 overflow-x-auto leading-relaxed">
+            <div class="text-slate-400 pb-1 mb-2 border-b border-slate-800">@@ -18,6 +18,11 @@ &lt;main id="widgets"&gt;</div>
+            <div class="px-2 text-slate-400">    &lt;!-- ADD YOUR WIDGET SECTION BELOW THIS LINE --&gt;</div>
+            <div class="px-2 diff-add text-emerald-300">+   &lt;section class="widget"&gt;</div>
+            <div class="px-2 diff-add text-emerald-300">+     &lt;h2&gt;Juan's Binary Converter&lt;/h2&gt;</div>
+            <div class="px-2 diff-add text-emerald-300">+     &lt;div id="juan-widget"&gt;&lt;/div&gt;</div>
+            <div class="px-2 diff-add text-emerald-300">+   &lt;/section&gt;</div>
+            <div class="px-2 text-slate-400">  &lt;/main&gt;</div>
+            <div class="px-2 text-slate-400">  &lt;!-- ADD YOUR SCRIPT TAG BELOW THIS LINE --&gt;</div>
+            <div class="px-2 diff-add text-emerald-300">+ &lt;script src="widgets/juan.js"&gt;&lt;/script&gt;</div>
+          </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div class="p-3 rounded-lg bg-slate-100 dark:bg-gh-bg border border-slate-200 dark:border-gh-border font-mono">
+            <strong class="text-gh-green">CLI Commands:</strong> <code>git status</code> (list modified files) &amp; <code>git diff</code> (inspect exact lines)
+          </div>
+          <div class="p-3 rounded-lg bg-slate-100 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <strong class="text-amber-500">Audit Check:</strong> Did you accidentally delete the comment <code>&lt;!-- ADD YOUR WIDGET... --&gt;</code>? If yes, put it back!
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 17: WRITING CLEAN COMMITS
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="17. Writing Clean Commits: One Idea, One Commit" data-time="1:02–1:10" data-notes="Checkpoint 2! Everyone should have 2 to 3 clean commits on their branch before our 10-minute break at 3:10 PM.">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-gh-green font-semibold">16 / Checkpoint 2 (1:00–1:10)</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 17 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">Writing Professional Commit Messages</h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-4">
+          A commit message tells your future self (and your teammates) <strong>what changed and why</strong>. Aim for <strong>2–3 focused commits</strong> on your branch today:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Bad vs Good Table -->
+          <div class="space-y-3">
+            <div class="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30">
+              <div class="font-bold text-rose-500 text-sm mb-2"><i class="fa-solid fa-thumbs-down mr-1.5"></i> Lazy Commit Messages (Avoid!)</div>
+              <ul class="font-mono text-xs space-y-1.5 text-slate-600 dark:text-gh-muted">
+                <li>❌ "update"</li>
+                <li>❌ "Added changes in repository"</li>
+                <li>❌ "fixed bug asdfghjkl"</li>
+                <li>❌ "final commit before break"</li>
+              </ul>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-gh-green/10 border border-gh-green/30">
+              <div class="font-bold text-gh-green text-sm mb-2"><i class="fa-solid fa-thumbs-up mr-1.5"></i> Your 3 Target Commits Today (Imperative Verb)</div>
+              <ul class="font-mono text-xs space-y-1.5 text-slate-800 dark:text-gh-text">
+                <li>✅ <strong>Commit 1:</strong> "Add Juan Dela Cruz to README contributors"</li>
+                <li>✅ <strong>Commit 2:</strong> "Add binary converter logic in widgets/juan.js"</li>
+                <li>✅ <strong>Commit 3:</strong> "Register Juan widget section in index.html"</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- CLI + History Check -->
+          <div class="p-4 rounded-xl bg-slate-900 text-slate-100 border border-slate-700 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-mono text-xs text-gh-blue font-bold">CLI Staging &amp; Committing</span>
+                <button onclick="copyCode('commit-cli-snippet', this)" class="text-xs font-mono text-slate-400 hover:text-white"><i class="fa-regular fa-copy mr-1"></i>Copy</button>
+              </div>
+              <pre id="commit-cli-snippet" class="font-mono text-xs text-emerald-300 bg-black/40 p-3 rounded-lg overflow-x-auto"># Stage specific file &amp; commit
+git add README.md
+git commit -m "Add Juan to README contributors"
+
+# Stage remaining widget files &amp; commit
+git add widgets/juan.js index.html
+git commit -m "Add binary converter widget"
+
+# View your commit history
+git log --oneline</pre>
+            </div>
+            <div class="mt-3 p-3 rounded-lg bg-gh-green/20 border border-gh-green text-xs">
+              <strong class="text-gh-green"><i class="fa-solid fa-flag-checkered mr-1"></i> CHECKPOINT 2 (Before 10-Min Break):</strong> Click the <strong>History tab</strong> in GitHub Desktop—you should see at least 2 commits on your <code class="font-mono">widget/yourname</code> branch!
+            </div>
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 18: THE COMPLETE 11-STEP TEAM WORKFLOW
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="18. Engr. Mervin's Complete 11-Step Team GitHub Workflow" data-time="1:20–1:25" data-notes="Welcome back from break! Present your signature 11-Step GitHub Workflow from github_workflow.txt. Emphasize Step 6 (Fetch main -> Update branch) before pushing.">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-xs uppercase text-gh-purple font-semibold">17 / The Master Checklist</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 18 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-3xl font-bold mb-1">The 11-Step Team GitHub Workflow (Interactive Checklist)</h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-3">
+          Check off each step as you complete it today—this exact 11-step loop works for every software class, capstone, and internship:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+          <label class="p-2.5 rounded-lg bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" checked class="accent-gh-green w-4 h-4">
+            <span><strong>1. Clone Project</strong> from GitHub (skip if already cloned).</span>
+          </label>
+          <label class="p-2.5 rounded-lg bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" checked class="accent-gh-green w-4 h-4">
+            <span><strong>2. Fetch &amp; Pull Origin</strong> on <code class="font-mono">main</code> branch to get latest updates.</span>
+          </label>
+          <label class="p-2.5 rounded-lg bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" checked class="accent-gh-green w-4 h-4">
+            <span><strong>3. Create a New Branch</strong> from <code class="font-mono">main</code> (<code class="font-mono">widget/yourname</code>).</span>
+          </label>
+          <label class="p-2.5 rounded-lg bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" checked class="accent-gh-green w-4 h-4">
+            <span><strong>4. Make Changes</strong> to your project files &amp; test in browser.</span>
+          </label>
+          <label class="p-2.5 rounded-lg bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" checked class="accent-gh-green w-4 h-4">
+            <span><strong>5. Commit Changes</strong> to your branch after reading the diff.</span>
+          </label>
+          <label class="p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/40 flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" class="accent-gh-green w-4 h-4">
+            <span><strong>6. Sync with Main:</strong> Fetch <code class="font-mono">main</code> → Go back to your branch &amp; <strong>Update from main</strong>!</span>
+          </label>
+          <label class="p-2.5 rounded-lg bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" class="accent-gh-green w-4 h-4">
+            <span><strong>7. Push Changes</strong> to <code class="font-mono">origin</code> / remote (<code class="font-mono">Publish branch</code>).</span>
+          </label>
+          <label class="p-2.5 rounded-lg bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" class="accent-gh-green w-4 h-4">
+            <span><strong>8. Double-Check</strong> if you missed changes (if true, repeat Steps 4–8).</span>
+          </label>
+          <label class="p-2.5 rounded-lg bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" class="accent-gh-green w-4 h-4">
+            <span><strong>9. Make a Pull Request (PR)</strong> on GitHub with a clear description.</span>
+          </label>
+          <label class="p-2.5 rounded-lg bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" class="accent-gh-green w-4 h-4">
+            <span><strong>10. Peer Code Review:</strong> Ask a fellow developer to inspect your diff.</span>
+          </label>
+          <label class="md:col-span-2 p-2.5 rounded-lg bg-gh-green/15 border border-gh-green/40 flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" class="accent-gh-green w-4 h-4">
+            <span><strong>11. Merge Pull Request</strong> into <code class="font-mono">main</code> &amp; celebrate your live feature!</span>
+          </label>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 19: PHASE 3 (1:20-1:55) PUSH & OPEN A PR
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="19. Phase 3 (1:20–1:55): Push Branch & Open a Pull Request" data-time="1:25–1:40" data-notes="Demo publishing a branch and clicking 'Branch -> Create Pull Request' from GitHub Desktop. Explain what 'origin' means.">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-gh-blue font-semibold">18 / Phase 3: Cloud Collaboration (1:20–1:55)</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 19 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">Publishing Your Branch &amp; Opening a Pull Request</h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-5">
+          Right now, your commits only exist on your laptop. Let's push your branch to GitHub (<code class="font-mono">origin</code>) and open a <strong>Pull Request (PR)</strong>:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border space-y-3">
+            <div class="font-mono text-xs text-gh-purple font-bold uppercase">Step A: Push Your Branch to GitHub</div>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted">
+              In GitHub Desktop, click <strong>Publish branch</strong> (top bar) or press <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 font-mono">Ctrl+P</kbd>. This uploads <code class="font-mono">widget/yourname</code> to GitHub without touching <code class="font-mono">main</code>.
+            </p>
+            <div class="p-2.5 rounded-lg bg-slate-900 text-emerald-300 font-mono text-xs flex items-center justify-between">
+              <span id="push-cli-code">git push -u origin widget/yourname</span>
+              <button onclick="copyCode('push-cli-code', this)" class="text-slate-400 hover:text-white"><i class="fa-regular fa-copy"></i></button>
+            </div>
+            <div class="text-xs text-slate-500 dark:text-gh-muted">
+              <strong>What does <code class="font-mono">-u origin</code> mean?</strong> It links your local branch to the remote <code class="font-mono">origin</code> server so future pushes only need <code class="font-mono">git push</code>.
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border space-y-3">
+            <div class="font-mono text-xs text-gh-green font-bold uppercase">Step B: Open a Pull Request (PR)</div>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted">
+              Click <strong>Branch → Create Pull Request</strong> in Desktop (or click the green <strong>Compare &amp; pull request</strong> banner on GitHub.com).
+            </p>
+            <div class="p-3 rounded-lg bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border text-xs space-y-1.5">
+              <div class="font-mono text-[11px] text-gh-blue">base: main ← compare: widget/juan</div>
+              <div class="font-bold">PR Title: Add Juan's Binary Converter Widget</div>
+              <div class="text-slate-500 dark:text-gh-muted">Description: Added `widgets/juan.js` 8-bit binary converter, registered section in `index.html`, and added name to `README.md`.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 20: PEER CODE REVIEW
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="20. Peer Code Review: Inspecting Your Partner's PR" data-time="1:40–1:55" data-notes="Have students pair up with their seatmate! Every student must open their partner's PR on GitHub, click the 'Files changed' tab, check these 4 items, and leave 1 comment.">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-gh-green font-semibold">19 / Checkpoint 3: Peer Review</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 20 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">Pair Up! How to Review Your Partner's Pull Request</h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-5">
+          Code review is quality assurance—especially when AI wrote the JavaScript! Open your seatmate's PR on GitHub, click the <strong>Files changed</strong> tab, and verify these 4 checks:
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono text-xs text-gh-blue font-bold">CHECK #1 • HTML COMMENTS</div>
+            <h3 class="font-bold text-sm sm:text-base mt-1">Did they keep the guide comments in `index.html`?</h3>
+            <p class="text-xs text-slate-600 dark:text-gh-muted mt-1">Make sure they didn't accidentally delete <code class="font-mono">&lt;!-- ADD YOUR WIDGET SECTION BELOW THIS LINE --&gt;</code> or the example Click Counter.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono text-xs text-gh-green font-bold">CHECK #2 • MATCHING IDs</div>
+            <h3 class="font-bold text-sm sm:text-base mt-1">Does `<div id="name-widget">` match their JS?</h3>
+            <p class="text-xs text-slate-600 dark:text-gh-muted mt-1">Check that <code class="font-mono">document.getElementById('...')</code> inside <code class="font-mono">widgets/name.js</code> targets their exact div ID.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono text-xs text-gh-purple font-bold">CHECK #3 • SCOPE ISOLATION</div>
+            <h3 class="font-bold text-sm sm:text-base mt-1">Did they only touch their own files?</h3>
+            <p class="text-xs text-slate-600 dark:text-gh-muted mt-1">Their PR should only modify <code class="font-mono">README.md</code>, <code class="font-mono">index.html</code>, and <code class="font-mono">widgets/theirname.js</code>—not <code class="font-mono">style.css</code>.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+            <div class="font-mono text-xs text-gh-orange font-bold">CHECK #4 • LEAVE A REVIEW COMMENT</div>
+            <h3 class="font-bold text-sm sm:text-base mt-1">Hover over a green line &amp; click the `+` icon</h3>
+            <p class="text-xs text-slate-600 dark:text-gh-muted mt-1">Leave one helpful comment or approval (e.g., <em>"Checked IDs and tested logic—looks clean! 🚀"</em>).</p>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-gh-blue/10 border border-gh-blue/30 text-xs sm:text-sm flex items-center justify-between">
+          <span><i class="fa-solid fa-code-merge text-gh-blue mr-2"></i><strong>Watch the Projector:</strong> We will now merge the very first PR into <code class="font-mono">main</code>—and watch what happens to everyone else's PRs!</span>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 21: PHASE 4 (1:55-2:35) WHY MERGE CONFLICTS HAPPEN
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="21. Phase 4 (1:55–2:35): Why Merge Conflicts Happen" data-time="1:55–2:05" data-notes="Key teaching moment: Repeat 'A merge conflict is NOT an error—it is Git asking a human to decide because two people wrote on the exact same line.'">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono text-xs uppercase text-amber-500 font-semibold">20 / Phase 4: Merge Conflicts (1:55–2:35)</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 21 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-4xl font-bold mb-2">Why Merge Conflicts Happen (And Why They Aren't Errors!)</h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-5">
+          Why did merging Student #1's PR suddenly cause a conflict on Student #2's branch? Because <strong>both of you edited the exact same lines</strong> under the comments in <code class="font-mono">index.html</code> and <code class="font-mono">README.md</code>!
+        </p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 items-center">
+          <!-- Left: Explanation of Markers -->
+          <div class="space-y-3">
+            <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
+              <h3 class="font-bold text-sm sm:text-base text-amber-500"><i class="fa-solid fa-handshake-angle mr-1.5"></i> Git Refuses to Guess (And Delete Code)</h3>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mt-1">
+                Instead of silently overwriting Maria's widget with Juan's widget, Git pauses the merge and inserts <strong>3 Conflict Marker Lines</strong> so a human can decide how to keep both.
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900 text-slate-100 border border-slate-700 font-mono text-xs space-y-2">
+              <div class="text-slate-400 font-sans text-xs mb-1">Anatomy of Conflict Markers (`CHEATSHEET.md`):</div>
+              <div class="text-rose-400 font-bold">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD (Your branch's version)</div>
+              <div class="pl-3 text-emerald-300">&lt;script src="widgets/juan.js"&gt;&lt;/script&gt;</div>
+              <div class="text-purple-400 font-bold">======= (Divider between the two versions)</div>
+              <div class="pl-3 text-sky-300">&lt;script src="widgets/maria.js"&gt;&lt;/script&gt;</div>
+              <div class="text-sky-400 font-bold">&gt;&gt;&gt;&gt;&gt;&gt;&gt; main (Incoming version from main)</div>
+            </div>
+          </div>
+
+          <!-- Right: The 4-Step Resolution Recipe -->
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border space-y-3">
+            <div class="font-mono text-xs text-gh-green font-bold uppercase">How to Resolve in 4 Calm Steps:</div>
+            <ol class="space-y-2.5 text-xs sm:text-sm list-decimal list-inside">
+              <li><strong>Trigger Update:</strong> On your branch in GitHub Desktop, click <strong>Branch → Update from main</strong> (<code class="font-mono">git merge main</code>).</li>
+              <li><strong>Open in Editor:</strong> When Desktop reports a conflict in <code class="font-mono">index.html</code> or <code class="font-mono">README.md</code>, click <strong>Open in Visual Studio Code</strong>.</li>
+              <li><strong>Keep BOTH Widgets &amp; Delete Markers:</strong> Keep both students' <code class="font-mono">&lt;section&gt;</code> tags, <code class="font-mono">&lt;script&gt;</code> tags, and <code class="font-mono">README.md</code> names, and <strong>delete the 3 marker lines</strong> (<code class="font-mono">&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code class="font-mono">=======</code>, <code class="font-mono">&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>).</li>
+              <li><strong>Test, Commit &amp; Push:</strong> Save the file, reload <code class="font-mono">index.html</code> in your browser to confirm both widgets work, then click <strong>Continue merge → Push origin</strong>!</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 22: INTERACTIVE MERGE CONFLICT SIMULATOR
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="22. Interactive Merge Conflict Resolver Sandbox" data-time="2:05–2:35" data-notes="Practice right here on Slide 22! Click the quick-action buttons or edit the conflicted code directly in the box and click 'Validate Conflict Resolution'.">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-xs uppercase text-gh-green font-semibold">21 / Interactive Sandbox</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 22 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-3xl font-bold mb-1">Interactive Merge Conflict Simulator (Try It Now!)</h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-3">
+          Practice resolving a conflict in <code class="font-mono">index.html</code> below! Edit the code manually (or click <strong>"Accept Both Changes"</strong>) so both Juan and Maria's scripts remain without any <code class="font-mono">&lt;&lt;&lt;</code>, <code class="font-mono">===</code>, or <code class="font-mono">&gt;&gt;&gt;</code> markers:
+        </p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div class="lg:col-span-8">
+            <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-800 text-slate-200 px-3 py-2 rounded-t-xl border-b border-slate-700 text-xs font-mono">
+              <span><i class="fa-solid fa-code-merge text-amber-400 mr-1.5"></i>index.html (Conflicted)</span>
+              <div class="flex gap-2">
+                <button onclick="acceptBothConflict()" class="px-2.5 py-1 rounded bg-gh-green text-white font-sans font-semibold hover:opacity-90">
+                  ✨ Auto-Accept Both Changes
+                </button>
+                <button onclick="resetConflictSim()" class="px-2.5 py-1 rounded bg-slate-700 text-slate-200 font-sans hover:bg-slate-600">
+                  Reset Conflict
+                </button>
+              </div>
+            </div>
+            <textarea id="conflict-editor" rows="9" class="w-full p-3.5 bg-slate-950 text-emerald-300 font-mono text-xs sm:text-sm rounded-b-xl border border-slate-700 focus:outline-none focus:border-gh-blue leading-relaxed"></textarea>
+          </div>
+
+          <div class="lg:col-span-4 flex flex-col justify-between space-y-3">
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border space-y-2.5">
+              <div class="font-bold text-sm">Resolution Validator</div>
+              <p class="text-xs text-slate-600 dark:text-gh-muted">
+                Git checks two things before allowing you to commit the merge:
+              </p>
+              <ul class="text-xs space-y-1.5 font-mono">
+                <li id="check-no-markers" class="text-rose-500"><i class="fa-solid fa-circle-xmark mr-1"></i> 1. All 3 marker lines deleted</li>
+                <li id="check-both-kept" class="text-gh-green"><i class="fa-solid fa-circle-check mr-1"></i> 2. Both Juan &amp; Maria scripts kept</li>
+              </ul>
+              <button onclick="validateConflictSim()" class="w-full py-2.5 rounded-lg bg-gh-blue text-slate-950 font-bold text-xs sm:text-sm hover:opacity-90 transition">
+                <i class="fa-solid fa-check-double mr-1"></i> Validate &amp; Commit Merge
+              </button>
+            </div>
+
+            <div id="conflict-feedback" class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs">
+              <strong class="text-amber-500">Status:</strong> Conflict markers (<code class="font-mono">&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>) are still in the file. Delete the 3 marker lines while keeping both <code class="font-mono">&lt;script&gt;</code> lines!
+            </div>
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 23: PHASE 5 (2:35-2:55) AI MISTAKES & UNDO
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="23. Phase 5 (2:35–2:55): AI Mistakes, Undo & Fallback Widget" data-time="2:35–2:55" data-notes="Have students prompt AI: 'Improve my widget and make it fancier', overwrite their file, and then practice both Discard Changes (git restore) and Revert Commit (git revert). Also includes the emergency Fallback Widget!">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-xs uppercase text-rose-500 font-semibold">22 / Phase 5: Time Travel &amp; Recovery (2:35–2:55)</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 23 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-3xl font-bold mb-1">When AI Breaks Your Code: <code class="font-mono text-gh-orange">restore</code> vs. <code class="font-mono text-gh-purple">revert</code></h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-gh-muted mb-3">
+          Ask AI to <em>"Make my widget 10x fancier"</em> and paste it over your file. If it breaks, how you undo depends on whether you committed yet:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+          <!-- Undo 1: Uncommitted -->
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-gh-bg border-2 border-gh-orange/40">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-mono text-xs font-bold text-gh-orange">SCENARIO A: UNCOMMITTED MESS</span>
+              <code class="font-mono text-xs bg-slate-900 text-gh-orange px-2 py-0.5 rounded">git restore &lt;file&gt;</code>
+            </div>
+            <h3 class="font-bold text-sm sm:text-base mb-1">1. Discard Uncommitted Changes</h3>
+            <p class="text-xs text-slate-600 dark:text-gh-muted">
+              You saved a broken AI edit in VS Code, <strong>but haven't clicked Commit yet</strong>.
+              <br><strong>In Desktop:</strong> Go to <strong>Changes tab → Right-click file → Discard changes...</strong> Instantly restores the file to your last commit!
+            </p>
+          </div>
+
+          <!-- Undo 2: Already Committed -->
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-gh-bg border-2 border-gh-purple/40">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-mono text-xs font-bold text-gh-purple">SCENARIO B: ALREADY COMMITTED MESS</span>
+              <code class="font-mono text-xs bg-slate-900 text-gh-purple px-2 py-0.5 rounded">git revert &lt;commit&gt;</code>
+            </div>
+            <h3 class="font-bold text-sm sm:text-base mb-1">2. Safely Revert a Bad Commit</h3>
+            <p class="text-xs text-slate-600 dark:text-gh-muted">
+              You already committed (or pushed) the broken change.
+              <br><strong>In Desktop:</strong> Go to <strong>History tab → Right-click the bad commit → Revert changes in commit</strong>. Creates a brand-new undo commit so history stays honest!
+            </p>
+          </div>
+        </div>
+
+        <!-- Emergency Fallback Widget -->
+        <div class="p-3.5 rounded-xl bg-slate-900 text-slate-100 border border-slate-700">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-mono text-xs text-gh-green font-bold"><i class="fa-solid fa-life-ring mr-1.5"></i>EMERGENCY FALLBACK WIDGET (If your AI code won't run, copy this!)</span>
+            <button onclick="copyCode('fallback-widget-code', this)" class="px-2.5 py-1 rounded bg-gh-green text-white text-xs font-mono">
+              <i class="fa-regular fa-copy mr-1"></i> Copy Fallback JS
+            </button>
+          </div>
+          <pre id="fallback-widget-code" class="font-mono text-[11px] text-emerald-300 overflow-x-auto leading-snug">(function () {
+  const root = document.getElementById('fallback-widget'); // Change ID to match your HTML div!
+  if (!root) return;
+  root.innerHTML = '&lt;p id="res"&gt;Ready to flip?&lt;/p&gt;&lt;button id="btn"&gt;Flip CpE Coin 🪙&lt;/button&gt;';
+  root.querySelector('#btn').addEventListener('click', () => {
+    root.querySelector('#res').textContent = Math.random() &lt; 0.5 ? 'HEADS: Pass the Lab! 🚀' : 'TAILS: Debug More! ⚡';
+  });
+})();</pre>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 24: COMPLETE CHEAT SHEET + EXIT TICKET QUIZ
+         ========================================== -->
+    <section class="slide-section bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border shadow-xl" data-title="24. Complete Cheat Sheet & Exit Ticket Quiz" data-time="2:55–3:00 (5:00 PM)" data-notes="Wrap-up! Recap the loop: pull -> branch -> change -> commit -> push -> PR -> merge. Have students test themselves on the 4 Exit Ticket questions right on this slide!">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-xs uppercase text-gh-green font-semibold">23 / Wrap-Up &amp; Exit Ticket (2:55–3:00)</span>
+          <span class="font-mono text-xs text-slate-500 dark:text-gh-muted">Slide 24 / 24</span>
+        </div>
+        <h2 class="font-display text-2xl sm:text-3xl font-bold mb-2">Complete Cheat Sheet &amp; 4-Question Exit Ticket</h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <!-- Left: Full Cheat Sheet Table -->
+          <div class="lg:col-span-7 overflow-x-auto rounded-xl border border-slate-200 dark:border-gh-border">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-100 dark:bg-gh-bg border-b border-slate-200 dark:border-gh-border">
+                  <th class="p-2 font-bold">Task</th>
+                  <th class="p-2 font-bold text-gh-purple">GitHub Desktop</th>
+                  <th class="p-2 font-bold text-gh-green">Git Command</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 dark:divide-gh-border font-mono text-[11px]">
+                <tr><td class="p-2 font-sans font-medium">Start a repo</td><td class="p-2 font-sans">File &gt; New repository</td><td class="p-2 text-gh-green">git init</td></tr>
+                <tr><td class="p-2 font-sans font-medium">Copy a repo</td><td class="p-2 font-sans">File &gt; Clone repository</td><td class="p-2 text-gh-green">git clone &lt;url&gt;</td></tr>
+                <tr><td class="p-2 font-sans font-medium">See changes</td><td class="p-2 font-sans">Changes tab</td><td class="p-2 text-gh-green">git status / git diff</td></tr>
+                <tr><td class="p-2 font-sans font-medium">Save snapshot</td><td class="p-2 font-sans">Commit button</td><td class="p-2 text-gh-green">git add . &amp;&amp; git commit -m "msg"</td></tr>
+                <tr><td class="p-2 font-sans font-medium">View history</td><td class="p-2 font-sans">History tab</td><td class="p-2 text-gh-green">git log --oneline</td></tr>
+                <tr><td class="p-2 font-sans font-medium">Send to GitHub</td><td class="p-2 font-sans">Push origin</td><td class="p-2 text-gh-green">git push</td></tr>
+                <tr><td class="p-2 font-sans font-medium">Get updates</td><td class="p-2 font-sans">Fetch / Pull origin</td><td class="p-2 text-gh-green">git pull</td></tr>
+                <tr><td class="p-2 font-sans font-medium">New branch</td><td class="p-2 font-sans">Branch &gt; New branch</td><td class="p-2 text-gh-green">git switch -c &lt;name&gt;</td></tr>
+                <tr><td class="p-2 font-sans font-medium">Undo uncommitted</td><td class="p-2 font-sans">Right-click &gt; Discard</td><td class="p-2 text-gh-green">git restore &lt;file&gt;</td></tr>
+                <tr><td class="p-2 font-sans font-medium">Undo a commit</td><td class="p-2 font-sans">History &gt; Right-click &gt; Revert</td><td class="p-2 text-gh-green">git revert &lt;commit&gt;</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Right: Interactive Exit Ticket Quiz -->
+          <div class="lg:col-span-5 p-3.5 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border flex flex-col justify-between">
+            <div>
+              <div class="font-mono text-xs text-gh-blue font-bold uppercase mb-1">Quick Self-Check Exit Ticket (Click to Reveal)</div>
+              <div class="space-y-2 text-xs">
+                <details class="p-2.5 rounded-lg bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border cursor-pointer">
+                  <summary class="font-bold">1. What is the difference between Commit and Push?</summary>
+                  <p class="mt-1.5 text-slate-600 dark:text-gh-muted"><strong>Commit</strong> saves a snapshot locally on your laptop (offline). <strong>Push</strong> uploads your local commits to GitHub (<code class="font-mono">origin</code>) so the team can see them.</p>
+                </details>
+                <details class="p-2.5 rounded-lg bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border cursor-pointer">
+                  <summary class="font-bold">2. Why do we use branches instead of `main`?</summary>
+                  <p class="mt-1.5 text-slate-600 dark:text-gh-muted">Branches isolate your work (<code class="font-mono">widget/yourname</code>) so you can build and experiment without breaking the working <code class="font-mono">main</code> branch for your teammates.</p>
+                </details>
+                <details class="p-2.5 rounded-lg bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border cursor-pointer">
+                  <summary class="font-bold">3. What does a Pull Request give a team?</summary>
+                  <p class="mt-1.5 text-slate-600 dark:text-gh-muted">A PR gives the team a place to inspect the diff (<code class="font-mono">Files changed</code>), leave code review comments, catch bugs, and resolve conflicts before merging into <code class="font-mono">main</code>.</p>
+                </details>
+                <details class="p-2.5 rounded-lg bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border cursor-pointer">
+                  <summary class="font-bold">4. What do you do if AI breaks your code?</summary>
+                  <p class="mt-1.5 text-slate-600 dark:text-gh-muted">If uncommitted: <strong>Right-click → Discard changes</strong> (<code class="font-mono">git restore</code>). If already committed: <strong>History → Right-click → Revert</strong> (<code class="font-mono">git revert</code>).</p>
+                </details>
+              </div>
+            </div>
+            <div class="mt-2 pt-2 border-t border-slate-200 dark:border-gh-border text-[11px] text-center text-gh-green font-mono">
+              pull → branch → change → commit → push → PR → merge 🚀
+            </div>
+          </div>
+        </div>
+      </div>
+      <div></div>
+    </section>
+
+  </main>
+
+  <!-- ================= SPEAKER NOTES DRAWER ================= -->
+  <div id="speaker-notes-bar" class="fixed bottom-14 left-0 right-0 z-30 hidden px-4">
+    <div class="max-w-4xl mx-auto p-3.5 rounded-xl bg-slate-900/95 text-slate-100 border border-gh-blue/50 shadow-2xl backdrop-blur flex items-start justify-between gap-4">
+      <div class="flex gap-3 items-start">
+        <span class="px-2 py-1 rounded bg-gh-blue/20 text-gh-blue font-mono text-xs shrink-0 mt-0.5" id="notes-time-badge">0:00–0:15</span>
+        <div>
+          <div class="text-xs font-mono uppercase text-slate-400">Facilitator Talking Points &amp; Pacing Note:</div>
+          <p id="notes-content" class="text-xs sm:text-sm text-slate-200 mt-0.5"></p>
+        </div>
+      </div>
+      <button onclick="toggleSpeakerNotes()" class="text-slate-400 hover:text-white p-1">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= BOTTOM PRESENTATION CONTROLS ================= -->
+  <footer id="pres-footer" class="fixed bottom-0 left-0 right-0 z-30 h-14 bg-white/95 dark:bg-gh-card/95 backdrop-blur border-t border-slate-200 dark:border-gh-border px-4 sm:px-8 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <span id="footer-slide-title" class="text-xs sm:text-sm font-medium text-slate-600 dark:text-gh-muted truncate max-w-[220px] sm:max-w-md">
+        1. Welcome &amp; Workshop Roadmap
+      </span>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button onclick="prevSlide()" id="btn-prev" class="px-3.5 py-1.5 rounded-lg border border-slate-300 dark:border-gh-border hover:bg-slate-200 dark:hover:bg-slate-800 text-xs sm:text-sm font-medium disabled:opacity-40">
+        <i class="fa-solid fa-arrow-left mr-1"></i> Prev
+      </button>
+      <span id="slide-counter-pill" class="font-mono text-xs sm:text-sm px-3 py-1 rounded-md bg-slate-200 dark:bg-gh-bg border border-slate-300 dark:border-gh-border font-bold">
+        1 / 24
+      </span>
+      <button onclick="nextSlide()" id="btn-next" class="px-3.5 py-1.5 rounded-lg bg-gh-green hover:bg-gh-greenHover text-white text-xs sm:text-sm font-semibold shadow disabled:opacity-40">
+        Next <i class="fa-solid fa-arrow-right ml-1"></i>
+      </button>
+    </div>
+
+    <div class="hidden md:flex items-center gap-2 text-xs text-slate-400 font-mono">
+      <span><kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-gh-bg text-slate-700 dark:text-gh-muted">←</kbd> <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-gh-bg text-slate-700 dark:text-gh-muted">→</kbd> Navigate</span>
+      <span>•</span>
+      <span><kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-gh-bg text-slate-700 dark:text-gh-muted">N</kbd> Notes</span>
+    </div>
+  </footer>
+
+  <!-- ================= EXPORT HTML/CSS/JS MODAL ================= -->
+  <div id="export-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div onclick="closeExportModal()" class="absolute inset-0 bg-black/70 backdrop-blur-xs"></div>
+    <div class="relative w-full max-w-2xl rounded-2xl bg-white dark:bg-gh-card border border-slate-200 dark:border-gh-border p-6 z-10 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-gh-border mb-4">
+        <div>
+          <h3 class="font-display font-bold text-lg">Add This Deck to Your <code class="font-mono text-gh-green">class-hub</code> Repository</h3>
+          <p class="text-xs text-slate-500 dark:text-gh-muted">Download as a single `slides.html` file or link it from `index.html`</p>
+        </div>
+        <button onclick="closeExportModal()" class="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs sm:text-sm">
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+          <div class="font-bold mb-1"><i class="fa-solid fa-file-code text-gh-green mr-1.5"></i> Option 1: Save Single File (`slides.html`) Inside `class-hub/`</div>
+          <p class="text-xs text-slate-600 dark:text-gh-muted mb-3">
+            Save this file as <code class="font-mono font-bold">slides.html</code> right inside your <code class="font-mono">class-hub/</code> folder and commit it! Students can open <code class="font-mono">slides.html</code> offline in any browser.
+          </p>
+          <button onclick="downloadSelfHtml()" class="px-4 py-2 rounded-lg bg-gh-green text-white font-semibold text-xs hover:bg-gh-greenHover">
+            <i class="fa-solid fa-download mr-1.5"></i> Download `slides.html`
+          </button>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-gh-bg border border-slate-200 dark:border-gh-border">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-bold"><i class="fa-solid fa-link text-gh-blue mr-1.5"></i> Option 2: Add a "View Workshop Slides" Button in `class-hub/index.html`</span>
+            <button onclick="copyCode('header-link-snippet', this)" class="px-2 py-1 rounded bg-slate-200 dark:bg-slate-800 text-xs font-mono">
+              <i class="fa-regular fa-copy mr-1"></i> Copy Snippet
+            </button>
+          </div>
+          <pre id="header-link-snippet" class="font-mono text-xs p-3 rounded-lg bg-slate-900 text-emerald-300 overflow-x-auto">&lt;header&gt;
+  &lt;h1&gt;Class Hub&lt;/h1&gt;
+  &lt;p&gt;One page, many widgets. Each one built by a different person.&lt;/p&gt;
+  &lt;p style="margin-top: 12px;"&gt;
+    &lt;a href="slides.html" style="color: #58a6ff; font-weight: bold;"&gt;📚 Open Git &amp; GitHub Workshop Slides &amp; Study Guide&lt;/a&gt;
+  &lt;/p&gt;
+&lt;/header&gt;</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TOAST NOTIFICATION ================= -->
+  <div id="toast" class="fixed top-16 right-5 z-50 hidden px-4 py-2.5 rounded-xl bg-gh-green text-white font-mono text-xs shadow-lg flex items-center gap-2">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toast-msg">Copied to clipboard!</span>
+  </div>
+
+  <!-- ================= WORKSHOP JAVASCRIPT LOGIC ================= -->
+  <script id="workshop-script">
+    let currentSlideIndex = 0;
+    let currentMode = 'presentation';
+    let notesVisible = false;
+    const slides = document.querySelectorAll('.slide-section');
+    const totalSlides = slides.length;
+
+    // 5-Stage Pipeline Interactive Data (Slide 8)
+    const pipelineStages = [
+      {
+        title: 'Stage 1: Working Folder (Uncommitted Changes)',
+        cmd: 'git status / git diff',
+        desc: 'When you edit index.html or create widgets/yourname.js in VS Code and press Ctrl+S, the file is saved in your Working Folder, but Git has NOT recorded a snapshot yet.',
+        gui: 'Appears automatically in the left "Changes" tab with a yellow [M] or green [+] icon.',
+        undo: 'Right-click file → Discard changes (git restore <file>)'
+      },
+      {
+        title: 'Stage 2: Staging Area (Selecting What Goes in the Snapshot)',
+        cmd: 'git add <file>  (or git add .)',
+        desc: 'The Staging Area lets you pick and choose which modified files belong together in your next commit ("One idea, one commit").',
+        gui: 'Check or uncheck the blue checkboxes next to each file in the "Changes" tab.',
+        undo: 'Uncheck the file in Desktop (or run git restore --staged <file>)'
+      },
+      {
+        title: 'Stage 3: Local Repository History (Permanent Save Point)',
+        cmd: 'git commit -m "Add binary converter logic"',
+        desc: 'Takes everything in the Staging Area and freezes it into a permanent snapshot with a unique SHA hash (e.g. 27ef652) stored inside your laptop’s .git folder.',
+        gui: 'Type a clear summary message at the bottom-left and click "Commit to widget/yourname".',
+        undo: 'History tab → Right-click commit → Undo or Revert (git revert <commit>)'
+      },
+      {
+        title: 'Stage 4: Push / Upload to Remote Server',
+        cmd: 'git push -u origin widget/yourname',
+        desc: 'Connects to the internet and uploads your local branch commits up to GitHub so your teammates and facilitator can see your branch.',
+        gui: 'Click "Publish branch" or "Push origin" in the top toolbar (Ctrl+P).',
+        undo: 'Push a new revert commit to update the remote branch safely.'
+      },
+      {
+        title: 'Stage 5: GitHub Remote (Pull Request, Code Review & Merge)',
+        cmd: 'Compare & Pull Request → Merge PR',
+        desc: 'On GitHub.com, you open a Pull Request asking to merge widget/yourname into main. Your partner reviews your diff, you resolve any conflicts, and it goes live!',
+        gui: 'Click "Branch → Create Pull Request" in Desktop to launch GitHub in your browser.',
+        undo: 'GitHub allows reverting any merged Pull Request with 1 click.'
+      }
+    ];
+
+    // Repository File Tour Data (Slide 10)
+    const repoFilesData = {
+      index: {
+        title: 'index.html — Shared Dashboard Page',
+        badge: 'Everyone edits carefully',
+        desc: 'Contains the main <main id="widgets"> grid. You will add your <section class="widget"> and <script> tag right underneath the two marked HTML comment lines—never delete the example widget!',
+        code: `<!-- ADD YOUR WIDGET SECTION BELOW THIS LINE -->
+<section class="widget">
+  <h2>Juan's Binary Converter</h2>
+  <div id="juan-widget"></div>
+</section>
+...
+<!-- ADD YOUR SCRIPT TAG BELOW THIS LINE -->
+<script src="widgets/juan.js"><\/script>`
+      },
+      example: {
+        title: 'widgets/example.js — Starter Pattern Template',
+        badge: 'Do not delete',
+        desc: 'Shows how to wrap your Vanilla JS widget in an Immediately Invoked Function Expression (IIFE) so your variables never clash with your classmates’ widgets!',
+        code: `(function () {
+  const root = document.getElementById('example-widget');
+  if (!root) return;
+  let count = 0;
+  root.innerHTML = '<button>Clicked 0 times</button>';
+  const btn = root.querySelector('button');
+  btn.addEventListener('click', () => {
+    count++;
+    btn.textContent = \`Clicked \${count} times\`;
+  });
+})();`
+      },
+      readme: {
+        title: 'README.md — Instructions & Contributors Wall',
+        badge: 'Add your name at bottom',
+        desc: 'The front page documentation of the repository. In Step 4 of the instructions, you will add your name underneath "- Facilitator" in the Contributors list.',
+        code: `## Contributors
+<!-- ADD YOUR NAME BELOW THIS LINE -->
+- Facilitator
+- Juan Dela Cruz`
+      },
+      style: {
+        title: 'style.css — Responsive Grid & Button Styling',
+        badge: 'Read-only (Do not edit)',
+        desc: 'Automatically styles every <section class="widget">, <button>, and <input> using CSS Grid (repeat(auto-fill, minmax(260px, 1fr))). You get clean styling for free!',
+        code: `main {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.widget { background: #fff; border-radius: 8px; padding: 1rem; }
+button { background: #2da44e; color: #fff; border-radius: 6px; }`
+      },
+      gitignore: {
+        title: '.gitignore — Secret & Junk Filter',
+        badge: 'Security guard',
+        desc: 'Prevents Git from tracking heavy dependency folders (node_modules/), secret environment variables (.env), and OS junk files (.DS_Store, Thumbs.db).',
+        code: `node_modules/
+.env
+.DS_Store
+Thumbs.db`
+      },
+      cheatsheet: {
+        title: 'CHEATSHEET.md — GitHub Desktop + CLI Reference',
+        badge: 'Bookmark this!',
+        desc: 'Maps every GitHub Desktop button to its exact Git CLI command, plus good commit habits and merge conflict marker explanations.',
+        code: `| Task | GitHub Desktop | Command |
+| New branch | Branch > New branch | git switch -c <name> |
+| Save snapshot | Commit button | git add . && git commit -m "msg" |
+| Undo change | Right-click > Discard | git restore <file> |`
+      }
+    };
+
+    const initialConflictText = `  <!-- Example script (do not delete) -->
+  <script src="widgets/example.js"><\/script>
+
+  <!-- ADD YOUR SCRIPT TAG BELOW THIS LINE -->
+<<<<<<< HEAD
+  <script src="widgets/juan.js"><\/script>
+=======
+  <script src="widgets/maria.js"><\/script>
+>>>>>>> main
+</body>`;
+
+    // Initialize Deck
+    function initDeck() {
+      buildTOC();
+      updateSlideUI();
+      updateWidgetBuilder();
+      resetConflictSim();
+
+      // Keyboard navigation
+      document.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+        if (currentMode === 'presentation') {
+          if (e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            nextSlide();
+          } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            prevSlide();
+          }
+        }
+        if (e.key === 'n' || e.key === 'N') toggleSpeakerNotes();
+        if (e.key === 'm' || e.key === 'M') toggleDrawer('toc-drawer');
+        if (e.key === 't' || e.key === 'T') toggleTheme();
+        if (e.key === 'f' || e.key === 'F') toggleFullScreen();
+      });
+    }
+
+    function buildTOC() {
+      const tocList = document.getElementById('toc-list');
+      tocList.innerHTML = '';
+      slides.forEach((slide, idx) => {
+        const title = slide.getAttribute('data-title') || `Slide ${idx + 1}`;
+        const time = slide.getAttribute('data-time') || '';
+        const btn = document.createElement('button');
+        btn.className = 'w-full text-left px-3 py-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition flex items-center justify-between gap-2';
+        btn.innerHTML = `<span class="truncate font-medium">${title}</span><span class="font-mono text-[11px] text-slate-400 shrink-0">${time}</span>`;
+        btn.onclick = () => {
+          goToSlide(idx);
+          toggleDrawer('toc-drawer');
+        };
+        tocList.appendChild(btn);
+      });
+    }
+
+    function updateSlideUI() {
+      slides.forEach((s, idx) => {
+        s.classList.toggle('active-slide', idx === currentSlideIndex);
+      });
+
+      const activeSlide = slides[currentSlideIndex];
+      const title = activeSlide.getAttribute('data-title') || '';
+      const notes = activeSlide.getAttribute('data-notes') || '';
+      const time = activeSlide.getAttribute('data-time') || '';
+
+      document.getElementById('footer-slide-title').textContent = title;
+      document.getElementById('slide-counter-pill').textContent = `${currentSlideIndex + 1} / ${totalSlides}`;
+      document.getElementById('notes-content').textContent = notes;
+      document.getElementById('notes-time-badge').textContent = time;
+
+      const pct = ((currentSlideIndex + 1) / totalSlides) * 100;
+      document.getElementById('slide-progress-bar').style.width = `${pct}%`;
+
+      document.getElementById('btn-prev').disabled = currentSlideIndex === 0;
+      document.getElementById('btn-next').disabled = currentSlideIndex === totalSlides - 1;
+    }
+
+    function nextSlide() {
+      if (currentSlideIndex < totalSlides - 1) {
+        currentSlideIndex++;
+        updateSlideUI();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlideIndex > 0) {
+        currentSlideIndex--;
+        updateSlideUI();
+      }
+    }
+
+    function goToSlide(index) {
+      currentSlideIndex = index;
+      updateSlideUI();
+      if (currentMode === 'study') {
+        slides[index].scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function setViewMode(mode) {
+      currentMode = mode;
+      const body = document.body;
+      const btnPres = document.getElementById('btn-mode-pres');
+      const btnStudy = document.getElementById('btn-mode-study');
+      const footer = document.getElementById('pres-footer');
+
+      if (mode === 'presentation') {
+        body.classList.remove('mode-study');
+        body.classList.add('mode-presentation');
+        btnPres.className = 'px-3 py-1 rounded-md text-xs sm:text-sm font-medium transition flex items-center gap-1.5 bg-gh-green text-white shadow';
+        btnStudy.className = 'px-3 py-1 rounded-md text-xs sm:text-sm font-medium transition flex items-center gap-1.5 text-slate-700 dark:text-gh-muted hover:text-slate-900 dark:hover:text-white';
+        footer.classList.remove('hidden');
+        updateSlideUI();
+      } else {
+        body.classList.remove('mode-presentation');
+        body.classList.add('mode-study');
+        btnStudy.className = 'px-3 py-1 rounded-md text-xs sm:text-sm font-medium transition flex items-center gap-1.5 bg-gh-green text-white shadow';
+        btnPres.className = 'px-3 py-1 rounded-md text-xs sm:text-sm font-medium transition flex items-center gap-1.5 text-slate-700 dark:text-gh-muted hover:text-slate-900 dark:hover:text-white';
+        footer.classList.add('hidden');
+      }
+    }
+
+    function toggleDrawer(id) {
+      const el = document.getElementById(id);
+      el.classList.toggle('hidden');
+    }
+
+    function toggleSpeakerNotes() {
+      notesVisible = !notesVisible;
+      document.getElementById('speaker-notes-bar').classList.toggle('hidden', !notesVisible);
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.classList.toggle('dark');
+      const icon = document.getElementById('theme-icon');
+      icon.className = isDark ? 'fa-solid fa-sun text-amber-400' : 'fa-solid fa-moon text-slate-700';
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    // Slide 8: Interactive Pipeline Selector
+    function selectPipelineStage(idx) {
+      const data = pipelineStages[idx];
+      document.getElementById('pipe-title').textContent = data.title;
+      document.getElementById('pipe-cmd').textContent = data.cmd;
+      document.getElementById('pipe-desc').textContent = data.desc;
+      document.getElementById('pipe-gui').textContent = data.gui;
+      document.getElementById('pipe-undo').textContent = data.undo;
+
+      document.querySelectorAll('.pipe-btn').forEach((btn, i) => {
+        if (i === idx) {
+          btn.className = 'pipe-btn p-3.5 rounded-xl border-2 border-gh-orange bg-gh-orange/15 text-left transition';
+        } else {
+          btn.className = 'pipe-btn p-3.5 rounded-xl border-2 border-slate-200 dark:border-gh-border bg-slate-50 dark:bg-gh-bg text-left transition';
+        }
+      });
+    }
+
+    // Slide 10: Interactive File Tree Inspector
+    function inspectRepoFile(key) {
+      const item = repoFilesData[key];
+      document.getElementById('repo-file-title').textContent = item.title;
+      document.getElementById('repo-file-badge').textContent = item.badge;
+      document.getElementById('repo-file-desc').textContent = item.desc;
+      document.getElementById('repo-file-code').textContent = item.code;
+
+      document.querySelectorAll('.repo-file-btn').forEach((btn) => {
+        btn.classList.remove('bg-gh-blue/15', 'text-gh-blue', 'font-bold');
+      });
+      const activeBtn = document.getElementById(`file-btn-${key}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-gh-blue/15', 'text-gh-blue', 'font-bold');
+      }
+    }
+
+    // Slide 15: Interactive AI Prompt & HTML Snippet Generator
+    function updateWidgetBuilder() {
+      const rawName = document.getElementById('builder-name').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '') || 'yourname';
+      const idea = document.getElementById('builder-idea').value;
+      const capName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+
+      const promptText = `I'm a beginner. Write a vanilla JavaScript widget for a ${idea}. Put all logic in a single file widgets/${rawName}.js. Don't use any libraries or frameworks. It should render into a <div id="${rawName}-widget">. Keep it under 60 lines and add brief comments.`;
+
+      const htmlSnippet = `<!-- 1. Paste under: ADD YOUR WIDGET SECTION BELOW THIS LINE -->
+<section class="widget">
+  <h2>${capName}'s Widget</h2>
+  <div id="${rawName}-widget"></div>
+</section>
+
+<!-- 2. Paste under: ADD YOUR SCRIPT TAG BELOW THIS LINE -->
+<script src="widgets/${rawName}.js"><\/script>`;
+
+      document.getElementById('generated-ai-prompt').textContent = promptText;
+      document.getElementById('generated-html-snippet').textContent = htmlSnippet;
+      document.getElementById('builder-filepath').textContent = `widgets/${rawName}.js`;
+      document.getElementById('builder-id-check').textContent = `#${rawName}-widget (Branch: widget/${rawName})`;
+    }
+
+    // Slide 22: Interactive Merge Conflict Simulator
+    function resetConflictSim() {
+      const editor = document.getElementById('conflict-editor');
+      if (!editor) return;
+      editor.value = initialConflictText;
+      validateConflictSim(false);
+    }
+
+    function acceptBothConflict() {
+      const resolved = `  <!-- Example script (do not delete) -->
+  <script src="widgets/example.js"><\/script>
+
+  <!-- ADD YOUR SCRIPT TAG BELOW THIS LINE -->
+  <script src="widgets/juan.js"><\/script>
+  <script src="widgets/maria.js"><\/script>
+</body>`;
+      document.getElementById('conflict-editor').value = resolved;
+      validateConflictSim(true);
+    }
+
+    function validateConflictSim(showToastMsg = true) {
+      const val = document.getElementById('conflict-editor').value;
+      const hasMarkers = val.includes('<<<<<<<') || val.includes('=======') || val.includes('>>>>>>>');
+      const hasBoth = val.includes('widgets/juan.js') && val.includes('widgets/maria.js');
+
+      const markerEl = document.getElementById('check-no-markers');
+      const bothEl = document.getElementById('check-both-kept');
+      const feedbackEl = document.getElementById('conflict-feedback');
+
+      markerEl.className = hasMarkers ? 'text-rose-500' : 'text-gh-green font-bold';
+      markerEl.innerHTML = hasMarkers
+        ? '<i class="fa-solid fa-circle-xmark mr-1"></i> 1. Marker lines still present!'
+        : '<i class="fa-solid fa-circle-check mr-1"></i> 1. All 3 marker lines deleted';
+
+      bothEl.className = hasBoth ? 'text-gh-green font-bold' : 'text-rose-500';
+      bothEl.innerHTML = hasBoth
+        ? '<i class="fa-solid fa-circle-check mr-1"></i> 2. Both Juan & Maria scripts kept'
+        : '<i class="fa-solid fa-circle-xmark mr-1"></i> 2. Oops! You deleted a teammate’s script!';
+
+      if (!hasMarkers && hasBoth) {
+        feedbackEl.className = 'p-3.5 rounded-xl bg-gh-green/15 border border-gh-green text-xs text-gh-green font-semibold';
+        feedbackEl.innerHTML = '🎉 <strong>Merge Conflict Resolved!</strong> Both widgets are intact and all conflict markers are gone. Ready to commit & push!';
+        if (showToastMsg) showToast('Merge conflict resolved cleanly!');
+      } else {
+        feedbackEl.className = 'p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs';
+        feedbackEl.innerHTML = '<strong class="text-amber-500">Keep going:</strong> Make sure you delete <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code>, <code>=======</code>, and <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; main</code> while keeping both script tags.';
+      }
+    }
+
+    // Clipboard helper (iFrame safe)
+    function copyCode(elementId, btnEl) {
+      const text = document.getElementById(elementId).innerText;
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      showToast('Copied to clipboard!');
+      if (btnEl) {
+        const orig = btnEl.innerHTML;
+        btnEl.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Copied!';
+        setTimeout(() => { btnEl.innerHTML = orig; }, 1600);
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 2200);
+    }
+
+    // Export Modal Controls
+    function openExportModal() {
+      document.getElementById('export-modal').classList.remove('hidden');
+    }
+
+    function closeExportModal() {
+      document.getElementById('export-modal').classList.add('hidden');
+    }
+
+    function downloadSelfHtml() {
+      const fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      const blob = new Blob([fullHtml], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'slides.html';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Downloaded slides.html!');
+    }
+
+    window.onload = initDeck;
+  </script>
+</body>
+</html>
