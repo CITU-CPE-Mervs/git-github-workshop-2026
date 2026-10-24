@@ -156,11 +156,8 @@ A merge conflict occurs when two contributors edit the exact same lines of a sha
 
 When conflict markers appear:
 ```html
-<<<<<<< HEAD
   <script src="widgets/juan.js"></script>
-=======
   <script src="widgets/maria.js"></script>
->>>>>>> main
 ```
 
 1. Open the file in **VS Code**.
@@ -194,3 +191,5 @@ class-hub/
 - Facilitator (Mervin John Tampus)
 - Juan dela Cruz
 - Le Sushin D. Bejer
+- Moshi Moshi Saito
+-
